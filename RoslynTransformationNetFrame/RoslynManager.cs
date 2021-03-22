@@ -1,13 +1,21 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using BusinessLogic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 
 namespace RoslynTransformation
 {
-    public class TestClass
+    public class RoslynManager
     {
-        public static void Rewrite(string sampleCode)
+        private readonly IResourceManager _resourceManager;
+
+        public RoslynManager(IResourceManager resourceManager)
+        {
+            _resourceManager = resourceManager;
+        }
+
+        public string Rewrite(string sampleCode)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(sampleCode);
 
@@ -19,15 +27,17 @@ namespace RoslynTransformation
 
             var model = compilation.GetSemanticModel(tree);
 
-            var rewriter = new StringLiteralRewriter(model);
+            var rewriter = new StringLiteralRewriter(model, _resourceManager);
 
             var newSource = rewriter.Visit(root);
 
             if (newSource != root)
             {
                 Debug.WriteLine(newSource.ToFullString());
-                //File.WriteAllText(sourceTree.FilePath, newSource.ToFullString());
+                return newSource.ToFullString();
             }
+
+            return string.Empty;
         }
 
         public static void ParseByUsingTheObjectModel(string sampleCode)

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BusinessLogic
 {
-    class HebrewUtils
+    public class HebrewUtils
     {
         public static bool IsHebrewString(string text)
         {
@@ -15,6 +13,11 @@ namespace BusinessLogic
 
             const string regex_match_hebrew = @"[\u0590-\u05FF]+";
             return Regex.IsMatch(text, regex_match_hebrew, RegexOptions.IgnoreCase);
+        }
+
+        public bool IsHebrewString(object name)
+        {
+            throw new NotImplementedException();
         }
     }
 }
