@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace BusinessLogic
 {
-    public interface IResourceManager : IDisposable
+    public interface IResourceManager : IDisposable, IEnumerable<KeyValuePair<string, string>>
     {
         string this[string index]
         {

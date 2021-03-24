@@ -16,25 +16,37 @@ namespace Resource
         ResXResourceWriter _rw;
 
         public ResourceManager(string resxFilePath,
-            string designerPath,
-            string baseName,
-            string generatedCodeNamespace)
+            string designerPath = null,
+            string baseName = null,
+            string generatedCodeNamespace = null,
+            bool onlyRead = false)
         {
-            _rw = new ResXResourceWriter(resxFilePath);
             this._resxFilePath = resxFilePath;
             this._designerPath = designerPath;
             this._baseName = baseName;
             this._generatedCodeNamespace = generatedCodeNamespace;
+            this._onlyRead = onlyRead;
+
+            if (!_onlyRead)
+            {
+                _rw = new ResXResourceWriter(resxFilePath);
+            }
 
             // Enumerate the resources in the file.
             ResXResourceReader rr = new ResXResourceReader(resxFilePath);
             rr.UseResXDataNodes = true;
-            IDictionaryEnumerator dict = rr.GetEnumerator();
-            while (dict.MoveNext())
+            if (File.Exists(resxFilePath))
             {
-                ResXDataNode node = (ResXDataNode)dict.Value;
-                _dict.Add(node.Name, node);
-                _rw.AddResource(node);
+                IDictionaryEnumerator dict = rr.GetEnumerator();
+                while (dict.MoveNext())
+                {
+                    ResXDataNode node = (ResXDataNode)dict.Value;
+                    _dict.Add(node.Name, node);
+                    if (!_onlyRead)
+                    {
+                        _rw.AddResource(node);
+                    }
+                }
             }
         }
 
@@ -43,14 +55,28 @@ namespace Resource
         private readonly string _designerPath;
         private readonly string _baseName;
         private readonly string _generatedCodeNamespace;
+        private readonly bool _onlyRead;
 
         public string this[string index] => _dict[index].GetValue((ITypeResolutionService)null).ToString();
 
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _dict.GetEnumerator();
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return new DictionaryEnum(_dict);
+        }
+
         public void Add(string name, string stringLiteral)
         {
-            _dict.Add(name, new ResXDataNode(name, stringLiteral));
+            if (!_onlyRead)
+            {
+                _dict.Add(name, new ResXDataNode(name, stringLiteral));
 
-            _rw.AddResource(name, stringLiteral);
+                _rw.AddResource(name, stringLiteral);
+            }
         }
 
         public bool ContainString(string str)
@@ -60,22 +86,28 @@ namespace Resource
 
         public void Dispose()
         {
-            //_rw.Generate();
-            _rw.Close();
+            if (!_onlyRead)
+            {
+                _rw.Generate();
+                _rw.Close();
 
+                if (!string.IsNullOrEmpty(_designerPath))
+                {
+                    StreamWriter sw = new StreamWriter(_designerPath);
+                    string[] errors = null;
+                    CSharpCodeProvider provider = new CSharpCodeProvider();
+                    CodeCompileUnit code = StronglyTypedResourceBuilder.Create(_resxFilePath, _baseName,
+                                                                               _generatedCodeNamespace, provider,
+                                                                               false, out errors);
+                    //if (errors.Length > 0)
+                    //    foreach (var error in errors)
+                    //        Console.WriteLine(error);
 
-            StreamWriter sw = new StreamWriter(_designerPath);
-            string[] errors = null;
-            CSharpCodeProvider provider = new CSharpCodeProvider();
-            CodeCompileUnit code = StronglyTypedResourceBuilder.Create(_resxFilePath, _baseName,
-                                                                       _generatedCodeNamespace, provider,
-                                                                       false, out errors);
-            //if (errors.Length > 0)
-            //    foreach (var error in errors)
-            //        Console.WriteLine(error);
-
-            provider.GenerateCodeFromCompileUnit(code, sw, new CodeGeneratorOptions());
-            sw.Close();
+                    provider.GenerateCodeFromCompileUnit(code, sw, new CodeGeneratorOptions());
+                    sw.Close();
+                }
+            }
         }
+
     }
 }

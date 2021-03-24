@@ -1,25 +1,25 @@
 ﻿using NUnit.Framework;
-using RoslynTransformation;
-using TestNFProject;
+using RoslynTransformationNetFrame;
 
-namespace TestProject
+namespace TestNFProject
 {
     public class SyntaxTransformationTest
     {
         RoslynManager _testClass;
+        FakeResourceManager _fakeResourceManager; 
 
         public SyntaxTransformationTest()
         {
             //_resourceManager = new Mock<IResourceManager>();
             //_resourceManager.Setup(r => r.GenerateName(It.IsAny<string>())).Returns<string>(t => t);
-
-            _testClass = new RoslynManager(new FakeResourceManager());
+            _fakeResourceManager = new FakeResourceManager();
+            _testClass = new RoslynManager(_fakeResourceManager);
         }
 
         [Test]
         public void TestEnum()
         {
-            const string sampleCode =
+            const string sourceCode =
 @"using System;
 using System.Collections;
 using System.Linq;
@@ -92,15 +92,16 @@ namespace HelloWorld
         }
     }
 }";
+            _fakeResourceManager.Clear();
 
-            string result = _testClass.Rewrite(sampleCode);
+            string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
         }
 
         [Test]
         public void TestMethodName()
         {
-            const string sampleCode =
+            const string sourceCode =
 @"using System;
 using System.Collections;
 using System.Linq;
@@ -135,15 +136,17 @@ namespace HelloWorld
         }
     }
 }";
+            _fakeResourceManager.Clear();
 
-            string result = _testClass.Rewrite(sampleCode);
+            string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
         }
 
         [Test]
         public void TestVariableName()
         {
-            const string sampleCode =
+            const string sourceCode
+                =
 @"using System;
 using System.Collections;
 using System.Linq;
@@ -196,15 +199,16 @@ namespace HelloWorld
         }
     }
 }";
+            _fakeResourceManager.Clear();
 
-            string result = _testClass.Rewrite(sampleCode);
+            string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
         }  
         
         [Test]
         public void TestComment()
         {
-            const string sampleCode =
+            const string sourceCode =
 @"using System;
 using System.Collections;
 using System.Linq;
@@ -225,9 +229,198 @@ namespace HelloWorld
         }
     }
 }";
+            _fakeResourceManager.Clear();
 
-            string result = _testClass.Rewrite(sampleCode);
+            string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual("", result);
         }
+
+        [Test]
+        public void TestNamespace()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(""הצג"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+using Organization.UI.Controls.Properties;
+
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(Strings.Program_lblRepIncomeLevel);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
+            Assert.AreEqual(expected, result);
+        }  
+        
+        [Test]
+        public void TestNamespace2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+using Organization.UI.Controls.Properties;
+
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(""הצג"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+using Organization.UI.Controls.Properties;
+
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(Strings.Program_lblRepIncomeLevel);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public void TestNamespace3()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(""הצג"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+using Organization.UI.Controls.Properties;
+
+namespace HelloWorld
+{
+    class Program
+    {
+      private void InitComponents()
+        {
+            lblRepIncomeLevel = new Label().Init(Strings.Program_lblRepIncomeLevel);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
+            Assert.AreEqual(expected, result);
+        }
+
+        /*
+        [Test]
+        public void TestRenameField()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        //comment1
+        CheckBox chkAutoMove, chkAutoMove3;
+        //comment2
+        CheckBox _chkAutoMove2;
+        Label lblRepIncomeLevel;
+
+        private void InitComponents()
+        {
+            lblRepIncomeLevel = ""Label1"";
+            int localVariable1;
+            localVariable1 = 5;
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        //comment1
+        CheckBox _chkAutoMove, 
+        CheckBox _chkAutoMove3;
+        //comment2
+        CheckBox _chkAutoMove2;
+        Label _lblRepIncomeLevel;
+
+        private void InitComponents()
+        {
+            _lblRepIncomeLevel = ""Label1"";
+            int localVariable1;
+            localVariable1 = 5;
+        }
+    }
+}";
+            //string result = _testClass.Rewrite(sourceCode);
+            string result = RoslynHelper.Refactor(sourceCode);
+            Assert.AreEqual(expected, result);
+        }*/
     }
 }

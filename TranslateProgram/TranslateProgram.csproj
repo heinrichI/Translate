@@ -61,6 +61,10 @@
       <Project>{67bd90f2-0613-4ac9-84c0-dec1ce623829}</Project>
       <Name>RoslynTransformationNetFrame</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TranslateService\TranslateService.csproj">
+      <Project>{0550C2DF-5590-41BD-BA57-4B6A3F1EDDC9}</Project>
+      <Name>TranslateService</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

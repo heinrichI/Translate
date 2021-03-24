@@ -1,4 +1,6 @@
 ﻿using BusinessLogic;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace TestNFProject
@@ -20,6 +22,21 @@ namespace TestNFProject
 
         public void Dispose()
         {
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void Clear()
+        {
+            _dict.Clear();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

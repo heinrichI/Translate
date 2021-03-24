@@ -3,21 +3,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
+using System.Linq;
 
-namespace RoslynTransformation
+namespace RoslynTransformationNetFrame
 {
     public class RoslynManager
     {
-        private readonly IResourceManager _resourceManager;
+        private readonly IResourceManager _translateResourceManager;
 
-        public RoslynManager(IResourceManager resourceManager)
+        public RoslynManager(IResourceManager translateResourceManager)
         {
-            _resourceManager = resourceManager;
+            this._translateResourceManager = translateResourceManager;
         }
 
-        public string Rewrite(string sampleCode)
+        public string Rewrite(string sourceCode, 
+            string generatedCodeNamespace = null)
         {
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(sampleCode);
+            bool changed = false;
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceCode);
 
             SyntaxNode root = tree.GetRoot();
 
@@ -27,39 +30,40 @@ namespace RoslynTransformation
 
             var model = compilation.GetSemanticModel(tree);
 
-            var rewriter = new StringLiteralRewriter(model, _resourceManager);
+            if (generatedCodeNamespace != null)
+            {
+                var rootCompUnit = (CompilationUnitSyntax)root;
+                if (!rootCompUnit.Usings.Any(u => u.Name.ToString() == generatedCodeNamespace))
+                {
+                    changed = true;
+                    NameSyntax nameSyntax = SyntaxFactory.ParseName(generatedCodeNamespace);
+                    var name = SyntaxFactory.UsingDirective(nameSyntax);
+                    //compilationUnitSyntax = compilationUnitSyntax
+                    //    .AddUsings(Syntax.UsingDirective(name).NormalizeWhitespace());
+                    root = rootCompUnit.AddUsings(name.NormalizeWhitespace()
+                        .WithTrailingTrivia(new[] 
+                        {
+                            SyntaxFactory.CarriageReturnLineFeed
+                            //SyntaxFactory.EndOfLine("\n"),
+                            //SyntaxFactory.Whitespace("") 
+                        })
+                        );
+                }
+            }
+
+            var rewriter = new StringLiteralRewriter(model, _translateResourceManager);
 
             var newSource = rewriter.Visit(root);
-
             if (newSource != root)
+                changed = true;
+
+            if (changed)
             {
                 Debug.WriteLine(newSource.ToFullString());
                 return newSource.ToFullString();
             }
 
             return string.Empty;
-        }
-
-        public static void ParseByUsingTheObjectModel(string sampleCode)
-        {
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(sampleCode);
-            var root = (CompilationUnitSyntax)tree.GetRoot();
-            foreach (MemberDeclarationSyntax item in root.Members)
-            {
-                if (item.Kind() == SyntaxKind.ClassDeclaration)
-                {
-                    var @class = (ClassDeclarationSyntax)item;
-
-                    foreach (var subItem in @class.Members)
-                    {
-                        if (subItem.Kind() == SyntaxKind.MethodDeclaration)
-                        {
-                            var method = (MethodDeclarationSyntax)subItem;
-                            // etc….	
-                        }
-                    }
-                }
-            }
         }
     }
 }
