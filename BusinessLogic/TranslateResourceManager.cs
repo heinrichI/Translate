@@ -20,12 +20,17 @@ namespace BusinessLogic
             this._translatorService = translatorService;
         }
 
-        public bool ContainString(string name)
+        public bool ContainValue(string name)
         {
-            return _englishResource.ContainString(name);
+            return _englishResource.ContainValue(name);
         }
 
-        public string this[string index] => _englishResource[index];
+        public bool ContainKey(string key)
+        {
+            return _englishResource.ContainKey(key);
+        }
+
+        //public string this[string index] => _englishResource[index];
 
 
         public void Add(string name, string stringLiteral)
@@ -63,6 +68,11 @@ namespace BusinessLogic
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _englishResource.GetEnumerator();
+        }
+
+        public string GetKeyByValue(string value)
+        {
+            return _englishResource.GetKeyByValue(value);
         }
     }
 }

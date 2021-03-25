@@ -6,13 +6,17 @@ namespace BusinessLogic
 {
     public interface IResourceManager : IDisposable, IEnumerable<KeyValuePair<string, string>>
     {
-        string this[string index]
-        {
-            get;
-        }
+        //string this[string index]
+        //{
+        //    get;
+        //}
 
-        bool ContainString(string str);
+        bool ContainKey(string key);
 
-        void Add(string name, string stringLiteral);
+        bool ContainValue(string value);
+
+        void Add(string name, string value);
+
+        string GetKeyByValue(string value);
     }
 }

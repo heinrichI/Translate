@@ -15,6 +15,7 @@ namespace RoslynTransformationNetFrame
         string _currentClass = null;
         string _currentMethod;
         string _expressionLeft;
+        string _variableName;
 
         public StringLiteralRewriter(SemanticModel semanticModel,
            IResourceManager translateResourceManager)
@@ -159,6 +160,22 @@ namespace RoslynTransformationNetFrame
             return base.VisitExpressionStatement(node);
         }
 
+        public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            if (node.Declaration.Variables.Any())
+            {
+                var var1 = node.Declaration.Variables.First();
+                _variableName = var1.Identifier.ValueText;
+                //if (varDecl. is IdentifierNameSyntax left)
+                //{
+                //    _expressionLeft = left.Identifier.ValueText;
+                //}
+            }
+            var visited = base.VisitLocalDeclarationStatement(node);
+            _variableName = null;
+            return visited;
+        }
+
         public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
             var list = node.GetLeadingTrivia();
@@ -248,13 +265,12 @@ namespace RoslynTransformationNetFrame
 
                     //TypeSyntax variableTypeName = node..Type;
                     NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings")
-                        .WithLeadingTrivia(node.GetLeadingTrivia())
-                        .WithTrailingTrivia(node.GetTrailingTrivia());
+                        .WithLeadingTrivia(node.GetLeadingTrivia());
 
                     string name;
-                    if (_translateResourceManager.ContainString(stringLiteral))
+                    if (_translateResourceManager.ContainValue(stringLiteral))
                     {
-                        name = _translateResourceManager[stringLiteral];
+                        name = _translateResourceManager.GetKeyByValue(stringLiteral);
                     }
                     else
                     {
@@ -263,7 +279,8 @@ namespace RoslynTransformationNetFrame
                     }
 
 
-                    var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name));
+                    var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
+                        .WithTrailingTrivia(node.GetTrailingTrivia());
                     return newNode;
                     //var newNode = LiteralExpression(SyntaxKind.StringLiteralExpression,
                     //    Literal(
@@ -291,12 +308,14 @@ namespace RoslynTransformationNetFrame
             {
                 string postFix = _expressionLeft;
                 if (string.IsNullOrEmpty(postFix))
+                    postFix = _variableName;
+                if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
 
                 newName = $"{_currentClass}_{postFix}";
             }
 
-            if (_translateResourceManager.ContainString(newName))
+            if (_translateResourceManager.ContainKey(newName))
                 newName = NameGenerator.Generate(newName, _translateResourceManager);
             
             return newName;

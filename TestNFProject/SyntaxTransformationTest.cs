@@ -203,8 +203,70 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-        }  
-        
+        }
+
+        [Test]
+        public void TestVariableName2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            GridColumn column = view.AddGridColumn(""TopIndex"", ""מספר"", """");
+            column.SortOrder = ColumnSortOrder.Ascending;
+            view.AddGridColumn(""RowType"", ""סוג"", """",
+                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { ""טקסט"", ""כותרת"", ""מטבע"" }),
+                true, false, false, true);
+            view.AddGridColumn(""RowText"", ""טקסט"", """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+            view.AddGridColumn(""NoField1"", ""מאפיינים"", """", null, true, false, false, true);
+
+            view.SetButtonEdit(""NoField1"", """", EditProperties, null);
+
+            view.OptionsView.ShowButtonMode = ShowButtonModeEnum.ShowAlways;
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            GridColumn column = view.AddGridColumn(""TopIndex"", Strings.Program_column, """");
+            column.SortOrder = ColumnSortOrder.Ascending;
+            view.AddGridColumn(""RowType"", Strings.Program_InitGridColumns, """",
+                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_InitGridColumns2, Strings.Program_InitGridColumns3, Strings.Program_InitGridColumns4 }),
+                true, false, false, true);
+            view.AddGridColumn(""RowText"", Strings.Program_InitGridColumns2, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+            view.AddGridColumn(""NoField1"", Strings.Program_InitGridColumns5, """", null, true, false, false, true);
+
+            view.SetButtonEdit(""NoField1"", """", EditProperties, null);
+
+            view.OptionsView.ShowButtonMode = ShowButtonModeEnum.ShowAlways;
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+        }
+
         [Test]
         public void TestComment()
         {

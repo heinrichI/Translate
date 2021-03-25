@@ -2,22 +2,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TestNFProject
 {
     class FakeResourceManager : IResourceManager
     {
         Dictionary<string, string> _dict = new Dictionary<string, string>();
-        public string this[string index] => _dict[index];
+
+        //public string this[string index] => _dict[index];
 
         public void Add(string name, string stringLiteral)
         {
             _dict.Add(name, stringLiteral);
         }
 
-        public bool ContainString(string str)
+        public bool ContainKey(string key)
         {
-            return _dict.ContainsKey(str);
+            return _dict.ContainsKey(key);
+        }
+
+        public bool ContainValue(string value)
+        {
+            return _dict.ContainsValue(value);
         }
 
         public void Dispose()
@@ -29,14 +36,20 @@ namespace TestNFProject
             throw new NotImplementedException();
         }
 
-        internal void Clear()
+        public string GetKeyByValue(string value)
         {
-            _dict.Clear();
+            return _dict.FirstOrDefault(x => x.Value == value).Key;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }
+
+        internal void Clear()
+        {
+            _dict.Clear();
+        }
+
     }
 }

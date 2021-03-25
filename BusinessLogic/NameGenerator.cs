@@ -4,14 +4,14 @@
     {
         public static string Generate(string newName, IResourceManager resourceManager)
         {
-            bool containt = resourceManager.ContainString(newName);
+            bool containt = resourceManager.ContainKey(newName);
             string generatedName = newName;
             uint iteration = 1;
             while(containt)
             {
                 iteration++;
                 generatedName = $"{newName}{iteration}";
-                containt = resourceManager.ContainString(generatedName);
+                containt = resourceManager.ContainKey(generatedName);
             }
             return generatedName;
         }

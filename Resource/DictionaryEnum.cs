@@ -20,7 +20,9 @@ namespace Resource
 
         public DictionaryEnum(Dictionary<string, System.Resources.ResXDataNode> dict)
         {
-            _list = dict.Select(d => new KeyValuePair<string, string>(
+            _list = dict
+                .Where(d => d.Value.GetValue((ITypeResolutionService)null) != null)
+                .Select(d => new KeyValuePair<string, string>(
                 d.Key, 
                 d.Value.GetValue((ITypeResolutionService)null).ToString())).ToList();
         }

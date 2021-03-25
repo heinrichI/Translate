@@ -73,7 +73,8 @@ namespace TranslateProgram
                     Path.GetDirectoryName(resourcePath),
                     Path.GetFileNameWithoutExtension(resourcePath) + ".en.resx");
 
-                //if (File.Exists(englishResourcePath))
+                if (!File.Exists(englishResourcePath))
+                    throw new FileNotFoundException("englishResourcePath");
                     //ResourceHelper.Create(englishResourcePath);
 
                 using (IResourceManager resource = new ResourceManager(resourcePath, onlyRead: true))
@@ -99,9 +100,13 @@ namespace TranslateProgram
                                 }
                                 tm.Add(item.Value, translate);
                             }
-                            if (!englishResource.ContainString(translate))
+                            if (!englishResource.ContainKey(item.Key))
                             {
                                 englishResource.Add(item.Key, translate);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Resource already contain {item.Key}");
                             }
                         }
                     }
