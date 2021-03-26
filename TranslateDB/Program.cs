@@ -33,9 +33,21 @@ namespace TranslateDB
             startup.ConfigureServices(services);
             IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-            MainLoop loop = serviceProvider.GetService<MainLoop>();
-            loop.Run();
-         
+            if (options.Mode == "Column")
+            {
+                ColumnLoop loop = serviceProvider.GetService<ColumnLoop>();
+                loop.Run();
+            }
+            else if (options.Mode == "DB")
+            {
+                if (string.IsNullOrEmpty(options.DataBase))
+                    throw new Exception("Database name is empty!");
+
+                DBLoop loop = serviceProvider.GetService<DBLoop>();
+                loop.Run();
+            }
+            else
+                throw new ArgumentException("Unknown mode " + options.Mode);
 
             Console.WriteLine("Press any key");
             Console.ReadKey();

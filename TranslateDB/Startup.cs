@@ -21,7 +21,10 @@ namespace TranslateDB
                 .AddSingleton<IConfiguration>(Configuration)
                 .AddScoped<IRepository, Repository>()
                 .AddScoped<IWriteRepository, WriteRepository>()
-                .AddSingleton<MainLoop>();
+                .AddScoped<IDbRepository, DbRepository>()
+                .AddScoped<IDynamicRepository, DynamicRepository>()
+                .AddSingleton<ColumnLoop>()
+                .AddSingleton<DBLoop>();
         }
     }
 }

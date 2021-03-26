@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace BusinessLogic
 {
-    public class MainLoop
+    public class ColumnLoop
     {
         private readonly ITranslateMemory _translateMemory;
         private readonly IServiceProvider _serviceProvider;
         private readonly ITranslatorService _translatorService;
 
-        public MainLoop(
+        public ColumnLoop(
             ITranslateMemory translateMemory,
             IServiceProvider serviceProvider,
             ITranslatorService translatorService)

@@ -19,5 +19,9 @@ namespace BusinessLogic
         public string FromLanguage { get; set; }
 
         public string ToLanguage { get; set; }
+
+        public string Mode { get; set; }
+
+        public string DataBase { get; set; }
     }
 }

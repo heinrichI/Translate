@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -157,7 +158,9 @@ namespace RoslynTransformationNetFrame
                     _expressionLeft = left.Identifier.ValueText;
                 }
             }
-            return base.VisitExpressionStatement(node);
+            var visited = base.VisitExpressionStatement(node);
+            _expressionLeft = null;
+            return visited;
         }
 
         public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -310,6 +313,8 @@ namespace RoslynTransformationNetFrame
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _variableName;
                 if (string.IsNullOrEmpty(postFix))
+                    postFix = GetConstName(node.Parent.Parent);
+                if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
 
                 newName = $"{_currentClass}_{postFix}";
@@ -321,10 +326,43 @@ namespace RoslynTransformationNetFrame
             return newName;
         }
 
+        private string GetConstName(SyntaxNode node)
+        {
+            MemberAccessExpressionSyntax identifier = node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().FirstOrDefault();
+            if (identifier != null)
+            {
+                var sym = _semanticModel.GetSymbolInfo(identifier);
+                if (sym.Symbol is IFieldSymbol field
+                    && field.IsConst)
+                {
+                    return sym.Symbol.Name;
+                }
+            }
+
+            return string.Empty;
+        }
+
         private string GetEnumName(SyntaxNode node)
         {
-            IdentifierNameSyntax en = node.DescendantNodes().OfType<IdentifierNameSyntax>()
-             .Where(i => _semanticModel.GetTypeInfo(i).Type?.TypeKind == TypeKind.Enum)?.LastOrDefault();
+            var identifiers = node.DescendantNodes().OfType<IdentifierNameSyntax>();
+            //foreach (var identifier in identifiers)
+            //{
+            //    var typeIden = _semanticModel.GetTypeInfo(identifier);
+            //    if (typeIden.Type.TypeKind == TypeKind.Enum)
+            //}
+            IdentifierNameSyntax en = identifiers
+             .Where(i =>
+             {
+                 try
+                 {
+                     return _semanticModel.GetTypeInfo(i).Type?.TypeKind == TypeKind.Enum;
+                 }
+                 catch (System.Exception ex)
+                 {
+                     return false;
+                 }
+
+             })?.LastOrDefault();
             if (en != null)
             {
                 return en.Identifier.ValueText;

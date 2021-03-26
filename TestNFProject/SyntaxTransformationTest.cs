@@ -6,7 +6,7 @@ namespace TestNFProject
     public class SyntaxTransformationTest
     {
         RoslynManager _testClass;
-        FakeResourceManager _fakeResourceManager; 
+        FakeResourceManager _fakeResourceManager;
 
         public SyntaxTransformationTest()
         {
@@ -338,8 +338,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
             Assert.AreEqual(expected, result);
-        }  
-        
+        }
+
         [Test]
         public void TestNamespace2()
         {
@@ -484,5 +484,81 @@ namespace HelloWorld
             string result = RoslynHelper.Refactor(sourceCode);
             Assert.AreEqual(expected, result);
         }*/
+
+        [Test]
+        public void TestConstName()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateButtonPanel() 
+        {
+            pnlButtons = new Panel();
+            pnlButtons.Size = new Size(800, 60);
+
+            Dictionary<int, string> Items = new Dictionary<int, string>();
+            Items.Add(ReportConst.REP_BalanceList, ""מאזנים"");
+            Items.Add(ReportConst.REP_Income, ""דוח רווח והפסד"");
+            Items.Add(ReportConst.REP_TaxRecon, ""דו התאמה לצרכי מס"");
+        }
+    }
+
+    public static class ReportConst
+    {
+        public const int
+            REP_StartPage = 0,
+            REP_Income = 1,
+            REP_BalanceList = 2,
+            REP_CapitalChange = 3,
+            REP_CashFlow = 4,
+            REP_TaxRecon = 5;
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateButtonPanel() 
+        {
+            pnlButtons = new Panel();
+            pnlButtons.Size = new Size(800, 60);
+
+            Dictionary<int, string> Items = new Dictionary<int, string>();
+            Items.Add(ReportConst.REP_BalanceList, Strings.Program_REP_BalanceList);
+            Items.Add(ReportConst.REP_Income, Strings.Program_REP_Income);
+            Items.Add(ReportConst.REP_TaxRecon, Strings.Program_REP_TaxRecon);
+        }
+    }
+
+    public static class ReportConst
+    {
+        public const int
+            REP_StartPage = 0,
+            REP_Income = 1,
+            REP_BalanceList = 2,
+            REP_CapitalChange = 3,
+            REP_CashFlow = 4,
+            REP_TaxRecon = 5;
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+        }
     }
 }

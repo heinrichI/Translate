@@ -13,6 +13,8 @@ namespace TranslateProgram
     {
         static void Main(string[] args)
         {
+            //Class1.Open();
+
             string resourcePath = ConfigurationManager.AppSettings.Get("ResourcePath");
 
             string fromLanguage = ConfigurationManager.AppSettings.Get("FromLanguage");
@@ -30,7 +32,6 @@ namespace TranslateProgram
                     Path.GetFileNameWithoutExtension(ConfigurationManager.AppSettings.Get("ResourcePath")) + ".he-IL.resx");
                 string fileToRefactor = ConfigurationManager.AppSettings.Get("FileToRefactor");
 
-
                 string designerPath = Path.Combine(
                     Path.GetDirectoryName(resourcePath),
                     Path.GetFileNameWithoutExtension(resourcePath) + ".Designer.cs");
@@ -42,6 +43,7 @@ namespace TranslateProgram
                 if (string.IsNullOrEmpty(generatedCodeNamespace))
                     throw new ArgumentNullException(nameof(generatedCodeNamespace));
 
+                string solutionPath = ConfigurationManager.AppSettings.Get("SolutionPath");
 
                 string refactored;
                 using (IResourceManager englishResource = new ResourceManager(resourcePath,
@@ -56,7 +58,8 @@ namespace TranslateProgram
                     tm,
                     translatorService);
 
-                    RoslynManager roslynManager = new RoslynManager(translateResourceManager);
+                    RoslynManager roslynManager = new RoslynManager(translateResourceManager,
+                        solutionPath);
 
                     string fileText = System.IO.File.ReadAllText(fileToRefactor);
                     refactored = roslynManager.Rewrite(fileText, generatedCodeNamespace);

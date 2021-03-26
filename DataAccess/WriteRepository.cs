@@ -32,5 +32,17 @@ namespace DataAccess
                 return updated;
             }
         }
+
+        public int Update(string tableName, string identityColumn, 
+            string columnName, string stringValue, object identity)
+        {
+            using (SqlCommand update = new SqlCommand($"UPDATE {tableName} SET {columnName} = @translate WHERE {identityColumn}=@id", _cnn))
+            {
+                update.Parameters.Add("@translate", SqlDbType.NVarChar).Value = stringValue;
+                update.Parameters.AddWithValue("@id", identity);
+                int updated = update.ExecuteNonQuery();
+                return updated;
+            }
+        }
     }
 }
