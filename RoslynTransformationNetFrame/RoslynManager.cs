@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.MSBuild;
+using System;
 
 namespace RoslynTransformationNetFrame
 {
@@ -31,14 +31,18 @@ namespace RoslynTransformationNetFrame
             SyntaxNode root = tree.GetRoot();
 
             CSharpCompilation compilation = null;
+            SemanticModel model = null;
             if (string.IsNullOrEmpty(_solutionPath))
             {
                 compilation = CSharpCompilation.Create("TransformationCS",
                      new SyntaxTree[] { tree },
                      null, new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+                model = compilation.GetSemanticModel(tree);
             }
             else
             {
+                /*
                 //AdhocWorkspace ws = new AdhocWorkspace();
 
                 //Solution solution = ws.AddSolution(SolutionInfo.Create(
@@ -47,20 +51,25 @@ namespace RoslynTransformationNetFrame
                 //    filePath: _solutionPath
                 //));
 
-
                 Solution solution = null;
-                //Task.Run(() =>
-                //{
-                    var workspace = MSBuildWorkspace.Create();
-                    solution = workspace.OpenSolutionAsync(_solutionPath).Result;
+
+                var workspace = MSBuildWorkspace.Create();
+                // Print message for WorkspaceFailed event to help diagnosing project load failures.
+                workspace.WorkspaceFailed += (o, e) => Console.WriteLine($"WorkspaceFailed: {e.Diagnostic.Message}");
+
+                solution = workspace.OpenSolutionAsync(_solutionPath).Result;
                 //}).Wait();
                 if (!solution.Projects.Any())
                     throw new System.Exception("There is not any project!");
                 var proj = solution.Projects.Single(p => p.FilePath == "c:\\Liram\\ramplus\\Liram.Ramplus.UI.Controls\\Liram.Ramplus.UI.Controls.csproj");
                 var comp = proj.GetCompilationAsync().Result;
+                // Let's register mscorlib
+                comp = comp.AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
                 var compilation2 = comp.AddSyntaxTrees(tree);
-                var model2 = comp.GetSemanticModel(compilation2.SyntaxTrees.First());
+                model = compilation2.GetSemanticModel(tree);
+                //var model2 = compilation2.GetSemanticModel(compilation2.SyntaxTrees.First());
+                var proj2 = solution.Projects.Single(p => p.FilePath == "c:\\Liram\\ramplus\\Liram.Ramplus.Common\\Liram.Ramplus.Common.csproj");
 
                 //var compilations = Task.WhenAll(solution.Projects.Select(x => x.GetCompilationAsync())).Result;
 
@@ -105,9 +114,8 @@ namespace RoslynTransformationNetFrame
                 //                var methodSymbol = model.GetSymbolInfo(methodInvocation).Symbol;
                 //                //Finds all references to M()
                 //                IEnumerable<ReferencedSymbol> referencesToM = SymbolFinder.FindReferencesAsync(methodSymbol, doc.Project.Solution).Result;
+                */
             }
-
-            var model = compilation.GetSemanticModel(tree);
 
             if (generatedCodeNamespace != null)
             {

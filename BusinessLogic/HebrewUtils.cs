@@ -15,9 +15,23 @@ namespace BusinessLogic
             return Regex.IsMatch(text, regex_match_hebrew, RegexOptions.IgnoreCase);
         }
 
-        public bool IsHebrewString(object name)
+        public static bool IsOnlyHebrewString(string text)
         {
-            throw new NotImplementedException();
+            //return text.IndexOfAny(HebrewChars.ToCharArray()) >= 0;
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            const string regex_match_hebrew = @"^[\u0590-\u05FF\s]+";
+            bool match = Regex.IsMatch(text, regex_match_hebrew, RegexOptions.IgnoreCase);
+            if (match)
+            {
+                bool onlySymbol = Regex.IsMatch(text, @"^[\s]+", RegexOptions.IgnoreCase);
+                if (onlySymbol)
+                    return false;
+                else
+                    return true;
+            }
+            return false;
         }
     }
 }

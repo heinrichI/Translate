@@ -6,16 +6,13 @@ namespace BusinessLogic
 {
     public class ColumnLoop
     {
-        private readonly ITranslateMemory _translateMemory;
         private readonly IServiceProvider _serviceProvider;
         private readonly ITranslatorService _translatorService;
 
         public ColumnLoop(
-            ITranslateMemory translateMemory,
             IServiceProvider serviceProvider,
             ITranslatorService translatorService)
         {
-            this._translateMemory = translateMemory;
             this._serviceProvider = serviceProvider;
             this._translatorService = translatorService;
         }
@@ -38,29 +35,17 @@ namespace BusinessLogic
                     IEnumerable<Row> rows = repository.GetRow();
                     foreach (Row row in rows)
                     {
-                        if (HebrewUtils.IsHebrewString(row.Name))
+                        if (HebrewUtils.IsOnlyHebrewString(row.Name))
                         {
-                            string translate;
-                            if (_translateMemory.Contain(row.Name))
+                            string translate = _translatorService.Translate(row.Name, false);
+                            if (HebrewUtils.IsHebrewString(translate))
                             {
-                                translate = _translateMemory.GetTm(row.Name);
-                                Console.WriteLine($"Used translate memory for {row.Name} - {translate}");
-                            }
-                            else
-                            {
-                                translate = _translatorService.Translate(row.Name, false);
-                                if (HebrewUtils.IsHebrewString(translate))
-                                {
-                                    Console.WriteLine($"Can not translate {row.Name}");
-                                    continue;
-                                }
-                                _translateMemory.Add(row.Name, translate);
+                                Console.WriteLine($"Can not translate {row.Name}");
+                                continue;
                             }
 
-                            {
-                                int updated = writeRepository.Update(row.Id, translate);
-                                Console.WriteLine($"Update {updated}. Translate from {row.Name} to {translate} in {row.Id}");
-                            }
+                            int updated = writeRepository.Update(row.Id, translate);
+                            Console.WriteLine($"Update {updated}. Translate from {row.Name} to {translate} in {row.Id}");
                         }
                     }
                 }    

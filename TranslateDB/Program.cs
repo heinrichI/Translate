@@ -22,10 +22,10 @@ namespace TranslateDB
             services.AddSingleton<Option>(options);
 
             TranslateMemory tm = new TranslateMemory(options.FromLanguage, options.ToLanguage);
-            services.AddSingleton<ITranslateMemory>(tm);
-
             GoogleTranslator gt = new GoogleTranslator(options.FromLanguage, options.ToLanguage);
-            services.AddSingleton<ITranslatorService>(gt);
+
+            TranslatorWithTM translatorWithTM = new TranslatorWithTM(tm, gt);
+            services.AddSingleton<ITranslatorService>(translatorWithTM);
 
 
 

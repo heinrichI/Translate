@@ -26,7 +26,19 @@ namespace BusinessLogic
             using (FileStream stream = new FileStream(filename, FileMode.Open))
             using (XmlReader reader = XmlReader.Create(stream))
             {
-                return ((Item[])_serializer.Deserialize(reader)).ToDictionary(p => p.Key, p => p.Value);
+                Item[] desirialized = (Item[])_serializer.Deserialize(reader);
+                var dict = new Dictionary<TKey, TValue>();
+
+                foreach (var item in desirialized)
+                {
+                    if (dict.ContainsKey(item.Key))
+                        throw new Exception($"{filename} already contain key {item.Key} {item.Value}");
+
+                    dict.Add(item.Key, item.Value);
+                }
+
+                return dict;
+                //return desirialized.ToDictionary(p => p.Key, p => p.Value);
             }
         }
 

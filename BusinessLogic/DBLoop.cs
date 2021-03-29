@@ -8,17 +8,13 @@ namespace BusinessLogic
 {
     public class DBLoop
     {
-        private readonly ITranslateMemory _translateMemory;
         private readonly IServiceProvider _serviceProvider;
         private readonly ITranslatorService _translatorService;
-        private readonly IDbRepository _dbRepository;
 
         public DBLoop(
-            ITranslateMemory translateMemory,
             IServiceProvider serviceProvider,
             ITranslatorService translatorService)
         {
-            this._translateMemory = translateMemory;
             this._serviceProvider = serviceProvider;
             this._translatorService = translatorService;
         }
@@ -50,23 +46,14 @@ namespace BusinessLogic
                             {
                                 string stringValue = row[column] as string;
                                 if (!string.IsNullOrEmpty(stringValue)
-                                    && HebrewUtils.IsHebrewString(stringValue))
+                                    && HebrewUtils.IsOnlyHebrewString(stringValue))
                                 {
-                                    string translate;
-                                    if (_translateMemory.Contain(stringValue))
+                                    string translate = _translatorService.Translate(stringValue, false);
+
+                                    if (HebrewUtils.IsHebrewString(translate))
                                     {
-                                        translate = _translateMemory.GetTm(stringValue);
-                                        Console.WriteLine($"Used translate memory for {stringValue} - {translate}");
-                                    }
-                                    else
-                                    {
-                                        translate = _translatorService.Translate(stringValue, false);
-                                        if (HebrewUtils.IsHebrewString(translate))
-                                        {
-                                            Console.WriteLine($"Can not translate {stringValue}");
-                                            continue;
-                                        }
-                                        _translateMemory.Add(stringValue, translate);
+                                        Console.WriteLine($"Can not translate {stringValue}");
+                                        continue;
                                     }
 
                                     int updated = writeRepository.Update(tableName, identityColumn, column, translate, row[identityColumn]);

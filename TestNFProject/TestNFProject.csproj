@@ -38,8 +38,16 @@
       <HintPath>..\packages\NUnit.3.13.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,7 +56,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractTranslatorServiceTest.cs" />
     <Compile Include="FakeResourceManager.cs" />
+    <Compile Include="HebrewUtilsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoslynHelperTest.cs" />
     <Compile Include="SyntaxTransformationTest.cs" />
@@ -61,6 +71,10 @@
     <ProjectReference Include="..\RoslynTransformationNetFrame\RoslynTransformationNetFrame.csproj">
       <Project>{67bd90f2-0613-4ac9-84c0-dec1ce623829}</Project>
       <Name>RoslynTransformationNetFrame</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TranslateService\TranslateService.csproj">
+      <Project>{0550C2DF-5590-41BD-BA57-4B6A3F1EDDC9}</Project>
+      <Name>TranslateService</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

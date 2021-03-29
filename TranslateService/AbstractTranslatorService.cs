@@ -101,10 +101,54 @@ namespace TranslateService
             return b.ToString();
         }
 
+        public string EncodeSequences2(string text, 
+            out Dictionary<int, string> encodeInfo)
+        {
+            encodeInfo = null;
+            if (text == null) 
+                return null;
+
+            string[] special = { "\r\n" };
+
+            encodeInfo = new Dictionary<int, string>();
+            StringBuilder b = new StringBuilder(text);
+
+            foreach (var specialSymbol in special)
+            {
+                int index = text.LastIndexOf(specialSymbol);
+
+                if (index == -1)
+                    continue;
+
+                // run from the end to avoid position issues
+                // escape sequence '{{' 
+                int bracketsCount = 0;
+                int matchIndex = index - 1;
+                while (matchIndex >= 0 && text[matchIndex] == '{')
+                {
+                    matchIndex--;
+                    bracketsCount++;
+                }
+                if (bracketsCount % 2 == 1)
+                    continue;
+
+                int encodeVal = random.Next(500, 1000); // get value encoding the placeholder
+
+                // replace it 
+                b.Remove(index, specialSymbol.Length);
+                b.Insert(index, encodeVal);
+
+                // remember the placeholder and its encoded value
+                encodeInfo.Add(encodeVal, specialSymbol);
+            }
+
+            return b.ToString();
+        }
+
         /// <summary>
         /// Replaces number in text with given replacements
         /// </summary>        
-        protected string DecodeSequences(string text, Dictionary<int, string> encodeInfo) {
+        public string DecodeSequences(string text, Dictionary<int, string> encodeInfo) {
             if (text == null) return null;
 
             StringBuilder b = new StringBuilder(text);

@@ -20,12 +20,14 @@ namespace Resource
             string designerPath = null,
             string baseName = null,
             string generatedCodeNamespace = null,
+            bool internalClass = false,
             bool onlyRead = false)
         {
             this._resxFilePath = resxFilePath;
             this._designerPath = designerPath;
             this._baseName = baseName;
             this._generatedCodeNamespace = generatedCodeNamespace;
+            this._internalClass = internalClass;
             this._onlyRead = onlyRead;
 
             if (!_onlyRead)
@@ -35,6 +37,7 @@ namespace Resource
 
             // Enumerate the resources in the file.
             ResXResourceReader rr = new ResXResourceReader(resxFilePath);
+            rr.BasePath = Path.GetDirectoryName(resxFilePath);
             rr.UseResXDataNodes = true;
             if (File.Exists(resxFilePath))
             {
@@ -42,7 +45,8 @@ namespace Resource
                 while (dict.MoveNext())
                 {
                     ResXDataNode node = (ResXDataNode)dict.Value;
-                    string stringValue = node.GetValue((ITypeResolutionService)null)?.ToString();
+                    var typeResolutionService = node.GetValue((ITypeResolutionService)null);
+                    string stringValue = typeResolutionService?.ToString();
                     if (!string.IsNullOrEmpty(stringValue))
                     {
                         _dict.Add(node.Name, stringValue);
@@ -61,6 +65,7 @@ namespace Resource
         private readonly string _designerPath;
         private readonly string _baseName;
         private readonly string _generatedCodeNamespace;
+        private readonly bool _internalClass;
         private readonly bool _onlyRead;
 
         //public string this[string index] => _dict[index];
@@ -113,9 +118,13 @@ namespace Resource
                     StreamWriter sw = new StreamWriter(_designerPath);
                     string[] errors = null;
                     CSharpCodeProvider provider = new CSharpCodeProvider();
-                    CodeCompileUnit code = StronglyTypedResourceBuilder.Create(_resxFilePath, _baseName,
-                                                                               _generatedCodeNamespace, provider,
-                                                                               false, out errors);
+                    CodeCompileUnit code = StronglyTypedResourceBuilder.Create(
+                        _resxFilePath, 
+                        _baseName,
+                        _generatedCodeNamespace, 
+                        provider,
+                        _internalClass, 
+                        out errors);
                     //if (errors.Length > 0)
                     //    foreach (var error in errors)
                     //        Console.WriteLine(error);

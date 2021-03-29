@@ -274,6 +274,7 @@ namespace RoslynTransformationNetFrame
                     if (_translateResourceManager.ContainValue(stringLiteral))
                     {
                         name = _translateResourceManager.GetKeyByValue(stringLiteral);
+                        Console.WriteLine($"Resource alreade have string {stringLiteral}, insert him key {name}");
                     }
                     else
                     {
@@ -315,6 +316,8 @@ namespace RoslynTransformationNetFrame
                 if (string.IsNullOrEmpty(postFix))
                     postFix = GetConstName(node.Parent.Parent);
                 if (string.IsNullOrEmpty(postFix))
+                    postFix = GetFirstMemberName(node.Parent.Parent);
+                if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
 
                 newName = $"{_currentClass}_{postFix}";
@@ -326,17 +329,52 @@ namespace RoslynTransformationNetFrame
             return newName;
         }
 
+        private string GetFirstMemberName(SyntaxNode node)
+        {
+            try
+            {
+                var argumentList = node.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+                if (argumentList != null)
+                {
+                    var simpleMember = argumentList
+                        .DescendantNodes()
+                        .OfType<MemberAccessExpressionSyntax>()
+                        .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                        .FirstOrDefault();
+                    if (simpleMember != null)
+                    {
+                        return simpleMember.Name.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{node.ToString()} {ex.Message}");
+                //throw;
+            }
+
+            return string.Empty;
+        }
+
         private string GetConstName(SyntaxNode node)
         {
-            MemberAccessExpressionSyntax identifier = node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().FirstOrDefault();
-            if (identifier != null)
+            try
             {
-                var sym = _semanticModel.GetSymbolInfo(identifier);
-                if (sym.Symbol is IFieldSymbol field
-                    && field.IsConst)
+                MemberAccessExpressionSyntax identifier = node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().FirstOrDefault();
+                if (identifier != null)
                 {
-                    return sym.Symbol.Name;
+                    var sym = _semanticModel.GetSymbolInfo(identifier);
+                    if (sym.Symbol is IFieldSymbol field
+                        && field.IsConst)
+                    {
+                        return sym.Symbol.Name;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{node.ToString()} {ex.Message}");
+                //throw;
             }
 
             return string.Empty;

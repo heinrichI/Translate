@@ -24,6 +24,7 @@ namespace TranslateProgram
 
             TranslateMemory tm = new TranslateMemory(fromLanguage, toLanguage);
             ITranslatorService translatorService = new GoogleTranslator(fromLanguage, toLanguage);
+            TranslatorWithTM translatorWithTM = new TranslatorWithTM(tm, translatorService);
 
             if (mode == "Code")
             {
@@ -39,6 +40,7 @@ namespace TranslateProgram
 
                 string designerText = System.IO.File.ReadAllText(designerPath);
                 string generatedCodeNamespace = RoslynHelper.ExtractNamespace(designerText);
+                bool internalClass = RoslynHelper.IsInternalClass(designerText);
 
                 if (string.IsNullOrEmpty(generatedCodeNamespace))
                     throw new ArgumentNullException(nameof(generatedCodeNamespace));
@@ -49,14 +51,14 @@ namespace TranslateProgram
                 using (IResourceManager englishResource = new ResourceManager(resourcePath,
                     designerPath,
                     "Strings",
-                    generatedCodeNamespace))
+                    generatedCodeNamespace,
+                    internalClass: internalClass))
                 using (IResourceManager hebrewResource = new ResourceManager(hebrewResourcePath))
                 {
                     TranslateResourceManager translateResourceManager = new TranslateResourceManager(
                     englishResource,
                     hebrewResource,
-                    tm,
-                    translatorService);
+                    translatorWithTM);
 
                     RoslynManager roslynManager = new RoslynManager(translateResourceManager,
                         solutionPath);
@@ -87,22 +89,14 @@ namespace TranslateProgram
                     {
                         if (HebrewUtils.IsHebrewString(item.Value))
                         {
-                            string translate;
-                            if (tm.Contain(item.Value))
+                            string translate = translatorWithTM.Translate(item.Value, false);
+                     
+                            if (HebrewUtils.IsHebrewString(translate))
                             {
-                                translate = tm.GetTm(item.Value);
-                                Console.WriteLine($"Used translate memory for {item.Value} - {translate}");
+                                Console.WriteLine($"Can not translate {item.Value}");
+                                return;
                             }
-                            else
-                            {
-                                translate = translatorService.Translate(item.Value, false);
-                                if (HebrewUtils.IsHebrewString(translate))
-                                {
-                                    Console.WriteLine($"Can not translate {item.Value}");
-                                    return;
-                                }
-                                tm.Add(item.Value, translate);
-                            }
+
                             if (!englishResource.ContainKey(item.Key))
                             {
                                 englishResource.Add(item.Key, translate);
@@ -118,6 +112,9 @@ namespace TranslateProgram
             }
             else
                 throw new ArgumentException("Unknown mode " + mode);
+
+            Console.WriteLine("Press any key");
+            Console.ReadKey();
         }
     }
 }

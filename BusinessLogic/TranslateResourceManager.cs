@@ -9,25 +9,25 @@ namespace BusinessLogic
     {
         private IResourceManager _englishResource;
         private IResourceManager _hebrewResource;
-        private TranslateMemory _tm;
         private ITranslatorService _translatorService;
 
-        public TranslateResourceManager(IResourceManager englishResource, IResourceManager hebrewResource, TranslateMemory tm, ITranslatorService translatorService)
+        public TranslateResourceManager(IResourceManager englishResource,
+            IResourceManager hebrewResource, 
+            ITranslatorService translatorService)
         {
             this._englishResource = englishResource;
             this._hebrewResource = hebrewResource;
-            this._tm = tm;
             this._translatorService = translatorService;
         }
 
         public bool ContainValue(string name)
         {
-            return _englishResource.ContainValue(name);
+            return _hebrewResource.ContainValue(name);
         }
 
         public bool ContainKey(string key)
         {
-            return _englishResource.ContainKey(key);
+            return _hebrewResource.ContainKey(key);
         }
 
         //public string this[string index] => _englishResource[index];
@@ -37,22 +37,14 @@ namespace BusinessLogic
         {
             _hebrewResource.Add(name, stringLiteral);
 
-            string translate;
-            if (_tm.Contain(stringLiteral))
+            string translate = _translatorService.Translate(stringLiteral, false);
+
+            if (HebrewUtils.IsHebrewString(translate))
             {
-                translate = _tm.GetTm(stringLiteral);
-                Console.WriteLine($"Used translate memory for {stringLiteral} - {translate}");
+                Console.WriteLine($"Can not translate {stringLiteral}");
+                return;
             }
-            else
-            {
-                translate = _translatorService.Translate(stringLiteral, false);
-                if (HebrewUtils.IsHebrewString(translate))
-                {
-                    Console.WriteLine($"Can not translate {stringLiteral}");
-                    return;
-                }
-                _tm.Add(stringLiteral, translate);
-            }
+
             _englishResource.Add(name, translate);
         }
 
@@ -72,7 +64,7 @@ namespace BusinessLogic
 
         public string GetKeyByValue(string value)
         {
-            return _englishResource.GetKeyByValue(value);
+            return _hebrewResource.GetKeyByValue(value);
         }
     }
 }

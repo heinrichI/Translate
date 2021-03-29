@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Linq;
 
 namespace RoslynTransformationNetFrame
@@ -58,6 +59,23 @@ namespace RoslynTransformationNetFrame
             return null;
         }
 
+        public static bool IsInternalClass(string sourceCode)
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceCode);
+
+            SyntaxNode root = tree.GetRoot();
+
+            var classDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            {
+                if (classDeclaration.Modifiers.Any())
+                {
+                    if (classDeclaration.Modifiers[0].Kind() == SyntaxKind.InternalKeyword)
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         public static string Refactor(string sourceCode)
         {

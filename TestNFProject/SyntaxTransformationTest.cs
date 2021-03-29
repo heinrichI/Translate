@@ -559,6 +559,60 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+        }   
+        
+        [Test]
+        public void TestFirstMember()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitMeetingsGrid()
+        {
+            viewMeetings.AddGridColumn(nameof(MeetingModel.WorkerId), ""עובד"", """", 
+                WorkerLookups.GetWorkersLookup_Repository(tbWorkers: Model.tbWorkers));
+            viewMeetings.AddGridColumn(nameof(MeetingModel.StartDate), ""תאריך"", ""dd/MM/yyyy hh:mm:ss"");
+
+            viewMeetings.AddGridColumn(nameof(MeetingModel.TypeId), ""סוג"", """", MessageLookups.GetCallActionLookup());
+            viewMeetings.AddGridColumn(nameof(MeetingModel.StatusId), ""סטטוס"", """", MessageLookups.GetCallStatusLookup());
+            viewMeetings.AddGridColumn(nameof(MeetingModel.Conclusion), ""מסקנות"", """");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitMeetingsGrid()
+        {
+            viewMeetings.AddGridColumn(nameof(MeetingModel.WorkerId), Strings.Program_WorkerId, """", 
+                WorkerLookups.GetWorkersLookup_Repository(tbWorkers: Model.tbWorkers));
+            viewMeetings.AddGridColumn(nameof(MeetingModel.StartDate), Strings.Program_StartDate, ""dd/MM/yyyy hh:mm:ss"");
+
+            viewMeetings.AddGridColumn(nameof(MeetingModel.TypeId), Strings.Program_TypeId, """", MessageLookups.GetCallActionLookup());
+            viewMeetings.AddGridColumn(nameof(MeetingModel.StatusId), Strings.Program_StatusId, """", MessageLookups.GetCallStatusLookup());
+            viewMeetings.AddGridColumn(nameof(MeetingModel.Conclusion), Strings.Program_Conclusion, """");
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
         }
     }
 }
