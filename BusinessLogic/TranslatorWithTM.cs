@@ -26,6 +26,7 @@ namespace BusinessLogic
             }
             else
             {
+                Console.WriteLine($"Request translate for {unstranslatedText}");
                 translate = _translatorService.Translate(unstranslatedText, true);
                 if (!HebrewUtils.IsHebrewString(translate))
                 {

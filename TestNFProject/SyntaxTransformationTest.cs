@@ -614,5 +614,134 @@ namespace HelloWorld
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
         }
+
+        [Test]
+        public void TestInterpollatedString()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""נא לקלוט  {GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""{Strings.Program_IsValidData}  {GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("נא לקלוט");
+        }
+
+        [Test]
+        public void TestInterpollatedString2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""נא לקלוט{GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""{Strings.Program_IsValidData}{GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("נא לקלוט");
+        }
+
+        [Test]
+        public void TestInterpollatedString3()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""{field.Name} נא לקלוט {GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            MessageUtils.ShowError($""{field.Name} {Strings.Program_IsValidData} {GetCpiText(field.Caption)}!"");
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("נא לקלוט");
+        }
     }
 }

@@ -265,23 +265,11 @@ namespace RoslynTransformationNetFrame
 
                     //var en = node.Parent.Parent.Parent.Parent.Parent.DescendantNodes().OfType<ExpressionStatementSyntax>();
 
+                    string name = GetNameAndAddToResource(stringLiteral, node);
 
                     //TypeSyntax variableTypeName = node..Type;
                     NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings")
                         .WithLeadingTrivia(node.GetLeadingTrivia());
-
-                    string name;
-                    if (_translateResourceManager.ContainValue(stringLiteral))
-                    {
-                        name = _translateResourceManager.GetKeyByValue(stringLiteral);
-                        Console.WriteLine($"Resource alreade have string {stringLiteral}, insert him key {name}");
-                    }
-                    else
-                    {
-                        name = GenerateName(node);
-                        _translateResourceManager.Add(name, stringLiteral);
-                    }
-
 
                     var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
                         .WithTrailingTrivia(node.GetTrailingTrivia());
@@ -300,6 +288,91 @@ namespace RoslynTransformationNetFrame
             return node;
         }
 
+        private string GetNameAndAddToResource(string stringLiteral, SyntaxNode node)
+        {
+            if (_translateResourceManager.ContainValue(stringLiteral))
+            {
+                string name = _translateResourceManager.GetKeyByValue(stringLiteral);
+                Console.WriteLine($"Resource alreade have string {stringLiteral}, insert him key {name}");
+                return name;
+            }
+            else
+            {
+                string name = GenerateName(node);
+                _translateResourceManager.Add(name, stringLiteral);
+                return name;
+            }
+        }
+
+        public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
+        {
+            foreach (InterpolatedStringContentSyntax content in node.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax stringContent)
+                {
+                    if (HebrewUtils.IsHebrewString(stringContent.TextToken.ValueText))
+                    {
+                        string trimmed1 = stringContent.TextToken.ValueText.TrimEnd(' ');
+                        var arrayEnded = Enumerable.Repeat<char>(' ', stringContent.TextToken.ValueText.Length - trimmed1.Length).ToArray();
+
+                        string trimmed2 = trimmed1.TrimStart(' ');
+                        var arrayStarted = Enumerable.Repeat<char>(' ', trimmed1.Length - trimmed2.Length).ToArray();
+
+                        string name = GetNameAndAddToResource(trimmed2, node);
+
+                        NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings")
+                            .WithLeadingTrivia(node.GetLeadingTrivia());
+
+                        var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
+                            .WithTrailingTrivia(node.GetTrailingTrivia());
+
+                        List<InterpolatedStringContentSyntax> list = new List<InterpolatedStringContentSyntax>();
+
+                        if (arrayStarted.Length > 0)
+                        {
+                            string whiteSpaceText = new string(arrayStarted);
+
+                            var newTextToken = SyntaxFactory.Token(SyntaxTriviaList.Empty,
+                                SyntaxKind.InterpolatedStringTextToken,
+                                whiteSpaceText,
+                                "valueText",
+                                SyntaxTriviaList.Empty);
+                            var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
+                            list.Add(interpolatedWhiteSpace);
+                        }
+
+                        var interpolationSyntax = SyntaxFactory.Interpolation(newNode);
+                        list.Add(interpolationSyntax);
+                        // var newNode2 = node.ReplaceNode(content, interpolationSyntax);
+
+                        if (arrayEnded.Length > 0)
+                        {
+                            string whiteSpaceText = new string(arrayEnded);
+
+                            //var whiteSpace = SyntaxFactory.ParseTokens(" ").First();
+                            //var whiteSpace = SyntaxFactory.Token(SyntaxKind.WhitespaceTrivia);
+                            var newTextToken = SyntaxFactory.Token(SyntaxTriviaList.Empty,
+                                SyntaxKind.InterpolatedStringTextToken,
+                                whiteSpaceText,
+                                "valueText",
+                                SyntaxTriviaList.Empty);
+                            var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
+                            list.Add(interpolatedWhiteSpace);
+                        }
+                        //var newNode3 = newNode2.AddContents(interpolatedWhiteSpace);
+                        //var newList = node.Contents.Insert(0, interpolatedWhiteSpace);
+                        //return node.ReplaceNodes(node.Contents, newList);
+                        //node.Contents.(node.Contents, newList);
+                        //var newNode3 = newNode2.AddContents(newList);
+                        var newList = node.Contents.ReplaceRange(content, list);
+                        //return newNode3;
+                        return node.WithContents(newList);
+                    }
+                }
+            }
+            return base.VisitInterpolatedStringExpression(node);
+        }
+
         private string GenerateName(SyntaxNode node)
         {
             string newName;
@@ -315,7 +388,8 @@ namespace RoslynTransformationNetFrame
                     postFix = _variableName;
                 if (string.IsNullOrEmpty(postFix))
                     postFix = GetConstName(node.Parent.Parent);
-                if (string.IsNullOrEmpty(postFix))
+                if (string.IsNullOrEmpty(postFix)
+                    && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
                     postFix = GetFirstMemberName(node.Parent.Parent);
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
