@@ -148,18 +148,29 @@ namespace RoslynTransformationNetFrame
             return base.VisitMethodDeclaration(node);
         }
 
-        public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
+        //public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
+        //{
+        //    //_variableName = node.Identifier.ValueText;
+        //    if (node.Expression is AssignmentExpressionSyntax exp)
+        //    {
+        //        if (exp.Left is IdentifierNameSyntax left)
+        //        {
+        //            _expressionLeft = left.Identifier.ValueText;
+        //        }
+        //    }
+        //    var visited = base.VisitExpressionStatement(node);
+        //    _expressionLeft = null;
+        //    return visited;
+        //}
+
+        public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
         {
-            //_variableName = node.Identifier.ValueText;
-            if (node.Expression is AssignmentExpressionSyntax exp)
+            if (node.Left is IdentifierNameSyntax left)
             {
-                if (exp.Left is IdentifierNameSyntax left)
-                {
-                    _expressionLeft = left.Identifier.ValueText;
-                }
+                _expressionLeft = left.Identifier.ValueText;
             }
-            var visited = base.VisitExpressionStatement(node);
-            _expressionLeft = null;
+            var visited = base.VisitAssignmentExpression(node);
+           _expressionLeft = null;
             return visited;
         }
 
@@ -383,14 +394,21 @@ namespace RoslynTransformationNetFrame
             }
             else
             {
-                string postFix = _expressionLeft;
+                string postFix = null;
+                if (string.IsNullOrEmpty(postFix)
+                     && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
+                    postFix = GetSimpleMember(node.Parent);
+                if (string.IsNullOrEmpty(postFix)) 
+                    postFix = _expressionLeft;
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _variableName;
                 if (string.IsNullOrEmpty(postFix))
                     postFix = GetConstName(node.Parent.Parent);
+               // if (string.IsNullOrEmpty(postFix))
+                //    postFix = GetSimpleAssigment(node.Parent);
                 if (string.IsNullOrEmpty(postFix)
                     && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
-                    postFix = GetFirstMemberName(node.Parent.Parent);
+                    postFix = GetFirstMemberNameFromArgumentList(node.Parent.Parent);
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
 
@@ -403,11 +421,42 @@ namespace RoslynTransformationNetFrame
             return newName;
         }
 
-        private string GetFirstMemberName(SyntaxNode node)
+        //private string GetSimpleAssigment(SyntaxNode parent)
+        //{
+        //    var simpleMember = node
+        //                       .DescendantNodes()
+        //                       .OfType<AssignmentExpressionSyntax>()
+        //                       .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+        //                       .FirstOrDefault();
+        //    if (simpleMember != null)
+        //    {
+        //        return simpleMember.Name.ToString();
+        //    }
+
+        //    return null;
+        //}
+
+        private string GetSimpleMember(SyntaxNode node)
+        {
+            var simpleMember = node
+                     .DescendantNodes()
+                     .OfType<MemberAccessExpressionSyntax>()
+                     .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                     .FirstOrDefault();
+            if (simpleMember != null)
+            {
+                return simpleMember.Name.ToString();
+            }
+
+            return null;
+        }
+
+        private string GetFirstMemberNameFromArgumentList(SyntaxNode node)
         {
             try
             {
-                var argumentList = node.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+                //BracketedArgumentListSyntax
+                var argumentList = node.DescendantNodes().OfType<BaseArgumentListSyntax>().FirstOrDefault();
                 if (argumentList != null)
                 {
                     var simpleMember = argumentList

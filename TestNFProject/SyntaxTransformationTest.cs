@@ -742,6 +742,85 @@ namespace HelloWorld
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
             _fakeResourceManager.ContainValue("נא לקלוט");
+        }   
+        
+        [Test]
+        public void TestConst()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        // work data
+        ValuesEditor editor;
+
+        private void InitEditor()
+        {
+            editor.Fields.Add(new ComboBoxField<int>
+            {
+                FieldName = nameof(creditCard.CreditTerms),
+                Caption = ""סוג אשראי"",
+                Items = new Dictionary<int, string>
+                {
+                    [CreditCardConst.TERMS_REGULAR] = ""אשראי רגיל"",
+                    [CreditCardConst.TERMS_PAYMENTS] = ""תשלומים"",
+                    [CreditCardConst.TERMS_CREDIT_PAYMENTS] = ""קרדיט/תשלומים"",
+                    [CreditCardConst.TERMS_DIRECT] = ""תשלום מיידי""
+                },
+                OnEditValueChanged = ApplyCreditTerms,
+                ReadOnly = TermsReadOnly
+            });
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        // work data
+        ValuesEditor editor;
+
+        private void InitEditor()
+        {
+            editor.Fields.Add(new ComboBoxField<int>
+            {
+                FieldName = nameof(creditCard.CreditTerms),
+                Caption = Strings.Program_Caption,
+                Items = new Dictionary<int, string>
+                {
+                    [CreditCardConst.TERMS_REGULAR] = Strings.Program_TERMS_REGULAR,
+                    [CreditCardConst.TERMS_PAYMENTS] = Strings.Program_TERMS_PAYMENTS,
+                    [CreditCardConst.TERMS_CREDIT_PAYMENTS] = Strings.Program_TERMS_CREDIT_PAYMENTS,
+                    [CreditCardConst.TERMS_DIRECT] = Strings.Program_TERMS_DIRECT
+                },
+                OnEditValueChanged = ApplyCreditTerms,
+                ReadOnly = TermsReadOnly
+            });
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("סוג אשראי");
+            _fakeResourceManager.ContainValue("אשראי רגיל");
+            _fakeResourceManager.ContainValue("תשלומים");
+            _fakeResourceManager.ContainValue("קרדיט/תשלומים");
+            _fakeResourceManager.ContainValue("תשלום מיידי");
         }
     }
 }
