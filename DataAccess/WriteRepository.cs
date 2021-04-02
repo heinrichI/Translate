@@ -1,4 +1,5 @@
 ﻿using BusinessLogic;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -40,8 +41,16 @@ namespace DataAccess
             {
                 update.Parameters.Add("@translate", SqlDbType.NVarChar).Value = stringValue;
                 update.Parameters.AddWithValue("@id", identity);
-                int updated = update.ExecuteNonQuery();
-                return updated;
+                try
+                {
+                    int updated = update.ExecuteNonQuery();
+                    return updated;
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine($"Update error! {ex.Message} Text={stringValue}");
+                    return -1;
+                }
             }
         }
     }

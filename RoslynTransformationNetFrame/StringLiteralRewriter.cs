@@ -404,11 +404,33 @@ namespace RoslynTransformationNetFrame
                     postFix = _variableName;
                 if (string.IsNullOrEmpty(postFix))
                     postFix = GetConstName(node.Parent.Parent);
-               // if (string.IsNullOrEmpty(postFix))
+                // if (string.IsNullOrEmpty(postFix))
                 //    postFix = GetSimpleAssigment(node.Parent);
-                if (string.IsNullOrEmpty(postFix)
-                    && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
-                    postFix = GetFirstMemberNameFromArgumentList(node.Parent.Parent);
+                if (!node.IsKind(SyntaxKind.InterpolatedStringExpression))
+                {
+                    if (string.IsNullOrEmpty(postFix))
+                        postFix = GetFirstMemberNameFromArgumentList(node.Parent.Parent);
+                    if (!(node.Parent.Parent.Parent is BlockSyntax))
+                    {
+                        if (string.IsNullOrEmpty(postFix))
+                            postFix = GetObjectName(node.Parent.Parent.Parent);
+                        if (!(node.Parent.Parent.Parent.Parent is BlockSyntax))
+                        {
+                            if (string.IsNullOrEmpty(postFix))
+                                postFix = GetObjectName(node.Parent.Parent.Parent.Parent);
+                            if (!(node.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
+                            {
+                                if (string.IsNullOrEmpty(postFix))
+                                    postFix = GetObjectName(node.Parent.Parent.Parent.Parent.Parent);
+                                if (!(node.Parent.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
+                                {
+                                    if (string.IsNullOrEmpty(postFix))
+                                        postFix = GetObjectName(node.Parent.Parent.Parent.Parent.Parent.Parent);
+                                }
+                            }
+                        }
+                    }
+                }
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
 
@@ -419,6 +441,26 @@ namespace RoslynTransformationNetFrame
                 newName = NameGenerator.Generate(newName, _translateResourceManager);
             
             return newName;
+        }
+
+        private string GetObjectName(SyntaxNode node)
+        {
+            if (node is InvocationExpressionSyntax invocationExpression)
+            {
+                //var sym = _semanticModel.GetSymbolInfo(invocationExpression);
+                var identifiers = node.DescendantNodes().OfType<IdentifierNameSyntax>().ToList();
+                if (identifiers.Count > 1)
+                {
+                    var identifier = identifiers.FirstOrDefault();
+                    if (identifier != null)
+                    {
+                        string name = identifier.ToString();
+                        if (!BlackList.IsIn(name))
+                            return name;
+                    }
+                }
+            }
+            return null;
         }
 
         //private string GetSimpleAssigment(SyntaxNode parent)
@@ -438,14 +480,23 @@ namespace RoslynTransformationNetFrame
 
         private string GetSimpleMember(SyntaxNode node)
         {
-            var simpleMember = node
+            var simpleMembers = node
                      .DescendantNodes()
                      .OfType<MemberAccessExpressionSyntax>()
-                     .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                     .FirstOrDefault();
-            if (simpleMember != null)
+                     .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression);
+            MemberAccessExpressionSyntax simpleMember = simpleMembers.FirstOrDefault();
+            if (simpleMember != null && simpleMember.Expression != null)
             {
-                return simpleMember.Name.ToString();
+                int constIndex = simpleMember.Expression.ToString().IndexOf("const", StringComparison.InvariantCultureIgnoreCase);
+                if (constIndex != -1)
+                {
+                    return simpleMember.Name.ToString();
+
+                }
+                else
+                {
+                    return simpleMember.Expression.ToString();
+                }
             }
 
             return null;

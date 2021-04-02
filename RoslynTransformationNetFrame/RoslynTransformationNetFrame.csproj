@@ -227,6 +227,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlackList.cs" />
     <Compile Include="ClassRenamer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoslynHelper.cs" />

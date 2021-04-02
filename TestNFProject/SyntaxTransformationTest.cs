@@ -206,7 +206,7 @@ namespace HelloWorld
         }
 
         [Test]
-        public void TestVariableName2()
+        public void TestVariableName_DuplicateString()
         {
             const string sourceCode =
 @"using System;
@@ -250,10 +250,10 @@ namespace HelloWorld
             GridColumn column = view.AddGridColumn(""TopIndex"", Strings.Program_column, """");
             column.SortOrder = ColumnSortOrder.Ascending;
             view.AddGridColumn(""RowType"", Strings.Program_InitGridColumns, """",
-                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_InitGridColumns2, Strings.Program_InitGridColumns3, Strings.Program_InitGridColumns4 }),
+                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_RepositoryItemImageComboBox, Strings.Program_RepositoryItemImageComboBox2, Strings.Program_RepositoryItemImageComboBox3 }),
                 true, false, false, true);
-            view.AddGridColumn(""RowText"", Strings.Program_InitGridColumns2, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
-            view.AddGridColumn(""NoField1"", Strings.Program_InitGridColumns5, """", null, true, false, false, true);
+            view.AddGridColumn(""RowText"", Strings.Program_RepositoryItemImageComboBox, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+            view.AddGridColumn(""NoField1"", Strings.Program_InitGridColumns2, """", null, true, false, false, true);
 
             view.SetButtonEdit(""NoField1"", """", EditProperties, null);
 
@@ -265,6 +265,171 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("מספר");
+            _fakeResourceManager.ContainValue("סוג");
+            _fakeResourceManager.ContainValue("טקסט");
+        }
+
+        [Test]
+        public void TestVariableName_VariableShouldBeFirst()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            view.AddGridColumn(""RowText"", ""טקסט"", """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            view.AddGridColumn(""RowText"", Strings.Program_InitGridColumns, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("טקסט");
+        }
+
+        [Test]
+        public void TestVariableName_VariableShouldBeFirst2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            view.AddGridColumn(""RowType"", ""סוג"", """",
+                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { ""טקסט"", ""כותרת"", ""מטבע"" }),
+                true, false, false, true);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitGridColumns() 
+        {
+            view.AddGridColumn(""RowType"", Strings.Program_InitGridColumns, """",
+                new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_RepositoryItemImageComboBox, Strings.Program_RepositoryItemImageComboBox2, Strings.Program_RepositoryItemImageComboBox3 }),
+                true, false, false, true);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("טקסט");
+        }
+
+        [Test]
+        public void TestVariableName3()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        bool is_OneSidedCodeType = false;
+
+        private void InitGridColumns() 
+        {
+            if (is_OneSidedCodeType)
+            {
+                chkIsVat = new CheckBox().Init(""מע\""מ"", true);
+                chkIsVat.Location = new Point(LabelsLeft, lblCodeType.Top);
+                chkIsVat.Width = LabelsWidth;
+                chkIsVat.CheckedChanged += chkIsVat_CheckedChanged;
+
+                chkIsAdvPayment = new CheckBox().Init(""מקדמות"", true);
+                chkIsAdvPayment.Location = new Point(LabelsLeft - LabelsWidth, cbCodeType.Top);
+                chkIsAdvPayment.Width = LabelsWidth;
+
+                pnlGeneral.Controls.AddRange(new Control[] { chkIsVat, chkIsAdvPayment });
+            }
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        bool is_OneSidedCodeType = false;
+
+        private void InitGridColumns() 
+        {
+            if (is_OneSidedCodeType)
+            {
+                chkIsVat = new CheckBox().Init(Strings.Program_chkIsVat, true);
+                chkIsVat.Location = new Point(LabelsLeft, lblCodeType.Top);
+                chkIsVat.Width = LabelsWidth;
+                chkIsVat.CheckedChanged += chkIsVat_CheckedChanged;
+
+                chkIsAdvPayment = new CheckBox().Init(Strings.Program_chkIsAdvPayment, true);
+                chkIsAdvPayment.Location = new Point(LabelsLeft - LabelsWidth, cbCodeType.Top);
+                chkIsAdvPayment.Width = LabelsWidth;
+
+                pnlGeneral.Controls.AddRange(new Control[] { chkIsVat, chkIsAdvPayment });
+            }
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("מע\"מ");
+            _fakeResourceManager.ContainValue("מקדמות");
         }
 
         [Test]
@@ -559,8 +724,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-        }   
-        
+        }
+
         [Test]
         public void TestFirstMember()
         {
@@ -742,8 +907,8 @@ namespace HelloWorld
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
             _fakeResourceManager.ContainValue("נא לקלוט");
-        }   
-        
+        }
+
         [Test]
         public void TestConst()
         {
@@ -821,6 +986,151 @@ namespace HelloWorld
             _fakeResourceManager.ContainValue("תשלומים");
             _fakeResourceManager.ContainValue("קרדיט/תשלומים");
             _fakeResourceManager.ContainValue("תשלום מיידי");
+        }
+
+        [Test]
+        public void TestObjectName()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitEditor()
+        {
+            edtACC_ClientType_Id.Properties.InitGridLookupColumns(""CLT_Name"", ""שם"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitEditor()
+        {
+            edtACC_ClientType_Id.Properties.InitGridLookupColumns(""CLT_Name"", Strings.Program_edtACC_ClientType_Id);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("שם");
+        }
+
+        [Test]
+        public void TestObjectName2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitEditor()
+        {
+            icbIncomeSign.InitImageCombo(new Dictionary<int, string>() { { 0, ""ברירת מחדל"" }, { 1, ""זכות"" }, { 2, ""חובה"" } });
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void InitEditor()
+        {
+            icbIncomeSign.InitImageCombo(new Dictionary<int, string>() { { 0, Strings.Program_icbIncomeSign }, { 1, Strings.Program_icbIncomeSign2 }, { 2, Strings.Program_icbIncomeSign3 } });
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("ברירת מחדל");
+            _fakeResourceManager.ContainValue("זכות");
+            _fakeResourceManager.ContainValue("חובה");
+        }
+
+        [Test]
+        public void TestObjectName3()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void InitFormMasav(string AccKey)
+        {
+            edtAccCode.Visible = false;
+            ctrlPopupGrid popupAccount = new ctrlPopupGrid();
+            pnlTop.Controls.Add(popupAccount);
+            popupAccount.Name = ""popupAccountLink"";
+            popupAccount.Size = edtAccCode.Size;
+            popupAccount.Location = edtAccCode.Location;
+            popupAccount.DisplayField = ""ACC_AccountKey"";
+            popupAccount.GridFields = ""ACC_AccountKey|70|מספר|ACC_FullName|230|שם"";
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void InitFormMasav(string AccKey)
+        {
+            edtAccCode.Visible = false;
+            ctrlPopupGrid popupAccount = new ctrlPopupGrid();
+            pnlTop.Controls.Add(popupAccount);
+            popupAccount.Name = ""popupAccountLink"";
+            popupAccount.Size = edtAccCode.Size;
+            popupAccount.Location = edtAccCode.Location;
+            popupAccount.DisplayField = ""ACC_AccountKey"";
+            popupAccount.GridFields = Strings.Program_popupAccount;
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
         }
     }
 }
