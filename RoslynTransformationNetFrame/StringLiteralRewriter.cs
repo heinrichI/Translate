@@ -315,6 +315,8 @@ namespace RoslynTransformationNetFrame
             }
         }
 
+        static readonly char[] _interpolatedSymbols = { ' ', '-' };
+
         public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
             foreach (InterpolatedStringContentSyntax content in node.Contents)
@@ -323,19 +325,23 @@ namespace RoslynTransformationNetFrame
                 {
                     if (HebrewUtils.IsHebrewString(stringContent.TextToken.ValueText))
                     {
-                        string trimmed1 = stringContent.TextToken.ValueText.TrimEnd(' ');
-                        var arrayEnded = Enumerable.Repeat<char>(' ', stringContent.TextToken.ValueText.Length - trimmed1.Length).ToArray();
+                        char[] arrayEnded = new char[0];
+                        char[] arrayStarted = new char[0];
+                        string trimmed = stringContent.TextToken.ValueText;
 
-                        string trimmed2 = trimmed1.TrimStart(' ');
-                        var arrayStarted = Enumerable.Repeat<char>(' ', trimmed1.Length - trimmed2.Length).ToArray();
+                        foreach (var interpolatedSymbol in _interpolatedSymbols)
+                        {
+                            string trimmed1 = stringContent.TextToken.ValueText.TrimEnd(interpolatedSymbol);
+                            arrayEnded = Enumerable.Repeat<char>(interpolatedSymbol, stringContent.TextToken.ValueText.Length - trimmed1.Length).ToArray();
 
-                        string name = GetNameAndAddToResource(trimmed2, node);
+                            trimmed = trimmed1.TrimStart(interpolatedSymbol);
+                            arrayStarted = Enumerable.Repeat<char>(interpolatedSymbol, trimmed1.Length - trimmed.Length).ToArray();
 
-                        NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings")
-                            .WithLeadingTrivia(node.GetLeadingTrivia());
+                            if (arrayEnded.Length > 0
+                                || arrayStarted.Length > 0)
+                                break;
+                        }
 
-                        var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
-                            .WithTrailingTrivia(node.GetTrailingTrivia());
 
                         List<InterpolatedStringContentSyntax> list = new List<InterpolatedStringContentSyntax>();
 
@@ -351,6 +357,15 @@ namespace RoslynTransformationNetFrame
                             var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
                             list.Add(interpolatedWhiteSpace);
                         }
+
+                        string name = GetNameAndAddToResource(trimmed, node);
+
+                        NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings");
+                            //.WithLeadingTrivia(node.GetLeadingTrivia());
+
+                        var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name));
+                        //.WithTrailingTrivia(node.GetTrailingTrivia())
+                        // .WithLeadingTrivia(node.GetLeadingTrivia());
 
                         var interpolationSyntax = SyntaxFactory.Interpolation(newNode);
                         list.Add(interpolationSyntax);
@@ -378,6 +393,7 @@ namespace RoslynTransformationNetFrame
                         var newList = node.Contents.ReplaceRange(content, list);
                         //return newNode3;
                         return node.WithContents(newList);
+                        //return node.WithLeadingTrivia(node.GetLeadingTrivia());
                     }
                 }
             }

@@ -910,6 +910,114 @@ namespace HelloWorld
         }
 
         [Test]
+        public void TestInterpollatedString4()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            if (user.IsTrialLicense)
+            {
+                messages.Add(new SystemMessage
+                {
+                    Text = $""שימו לב: תקופת ניסיון מסתיימת ב-{user.ServiceEnd:dd/MM/yyyy}"",
+                    action = ShowBuyCloudLicenseForm
+                });
+            }
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public bool IsValidData()
+        {
+            if (user.IsTrialLicense)
+            {
+                messages.Add(new SystemMessage
+                {
+                    Text = $""{Strings.Program_Text}-{user.ServiceEnd:dd/MM/yyyy}"",
+                    action = ShowBuyCloudLicenseForm
+                });
+            }
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("שימו לב: תקופת ניסיון מסתיימת ב");
+        }        
+        
+        [Test]
+        public void TestInterpollatedString5()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static string ComposeDocumentLimitMessage(EntityLimitInfo info)
+        {
+            return $""מספר מסמכים שהופקו: {info.CreatedEntityCount},""+
+                $"" ניתן להפים עד {info.AllowedEntityCount} מסמכים"" +
+                $"" במקופה מ-{info.Period.From:dd/MM/yyyy} עד {info.Period.To:dd/MM/yyyy}"";
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static string ComposeDocumentLimitMessage(EntityLimitInfo info)
+        {
+            return $""{Strings.Program_ComposeDocumentLimitMessage} {info.CreatedEntityCount},""+
+                $"" {Strings.Program_ComposeDocumentLimitMessage2} {info.AllowedEntityCount} {Strings.Program_ComposeDocumentLimitMessage3}"" +
+                $"" {Strings.Program_ComposeDocumentLimitMessage4}-{info.Period.From:dd/MM/yyyy} {Strings.Program_ComposeDocumentLimitMessage5} {info.Period.To:dd/MM/yyyy}"";
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("מספר מסמכים שהופקו");
+            _fakeResourceManager.ContainValue("ניתן להפים עד");
+            _fakeResourceManager.ContainValue("מסמכים");
+            _fakeResourceManager.ContainValue("במקופה מ");
+            _fakeResourceManager.ContainValue("עד");
+        }
+
+        [Test]
         public void TestConst()
         {
             const string sourceCode =
