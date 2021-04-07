@@ -1240,5 +1240,55 @@ namespace HelloWorld
             Assert.AreEqual(expected, result);
             _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
         }
+
+        [Test]
+        public void TestNewLineSkip()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            using (var progress = RamForms.Manager.CreatePanelProgress())
+            {
+                progress.DisplayMessage(""מתבצע בניית מסד נתונים ראשי.\n"" + ""עם סיום התהליך תוכל להתחיל להינות מהשימוש במערכת"");
+            }
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            using (var progress = RamForms.Manager.CreatePanelProgress())
+            {
+                progress.DisplayMessage(Strings.Program_progress + ""\n""+ Strings.Program_progress2);
+            }
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("מתבצע בניית מסד נתונים ראשי.");
+            _fakeResourceManager.ContainValue("עם סיום התהליך תוכל להתחיל להינות מהשימוש במערכת");
+        }
     }
 }
