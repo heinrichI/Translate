@@ -1239,6 +1239,146 @@ namespace HelloWorld
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
             _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
+        }  
+        
+        [Test]
+        public void TestObjectName4()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", ""עריכת מסמך: "" + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", Strings.Program_frmEdit + DocTypeDB.GetDocumentType(MainDocTypeId).Description); + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("עריכת מסמך");
+        } 
+        
+        [Test]
+        public void TestObjectName5()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            btnPrint.SetDropDownMenu(
+                new string[] { btnPrint.Text.Replace(""\n"", "" ""), ""בחירת מדפסת"", ""בחירת תבנית הדפסה"", ""הדפס באנגלית"", ""שמירה ויצוא לקובץ PDF"", ""שמור והצג"" },
+                new Action[] { DoSaveAndPrint, DoSaveAndPrint_Dialog, ChoosePrintTemplate, SaveAndPrintInEnglish, DoSaveAndExportPdf, DoSaveAndPreview });
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public void Init()
+        {
+            btnPrint.SetDropDownMenu(
+                new string[] { btnPrint.Text.Replace(""\n"", "" ""), Strings.Program_btnPrint, Strings.Program_btnPrint2, Strings.Program_btnPrint3, Strings.Program_btnPrint4, Strings.Program_btnPrint5 },
+                new Action[] { DoSaveAndPrint, DoSaveAndPrint_Dialog, ChoosePrintTemplate, SaveAndPrintInEnglish, DoSaveAndExportPdf, DoSaveAndPreview });
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("בחירת מדפסת");
+            _fakeResourceManager.ContainValue("שמירה ויצוא לקובץ PDF");
+        }  
+        
+        [Test]
+        public void TestGlobalVariable()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        DataTable tbPaymentTypes;
+ 
+        const string ToolTip_ChargeDay = ""תאריך העברת תשלום ע\""י חברת אשראי לחשבון בנק של העסק בחודש עוקב"";
+
+        public void InitFormMasav(string AccKey)
+        {
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        DataTable tbPaymentTypes;
+ 
+        const string ToolTip_ChargeDay = Strings.Program_ToolTip_ChargeDay;
+
+        public void InitFormMasav(string AccKey)
+        {
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
         }
 
         [Test]
@@ -1289,6 +1429,191 @@ namespace HelloWorld
             Assert.AreEqual(expected, result);
             _fakeResourceManager.ContainValue("מתבצע בניית מסד נתונים ראשי.");
             _fakeResourceManager.ContainValue("עם סיום התהליך תוכל להתחיל להינות מהשימוש במערכת");
+        } 
+        
+        [Test]
+        public void TestSwitch()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string ToDescription(this DocTypeDetailedTransaction value)
+        {
+            switch (value)
+            {
+                case DocTypeDetailedTransaction.Regular: return ""רגילה"";
+                case DocTypeDetailedTransaction.Detailed: return ""מפורטת"";
+                case DocTypeDetailedTransaction.DetailedTwoSides: return ""מפורטת שני צדדים"";
+            }
+            return "";
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string ToDescription(this DocTypeDetailedTransaction value)
+        {
+            switch (value)
+            {
+                case DocTypeDetailedTransaction.Regular: return Strings.Program_Regular;
+                case DocTypeDetailedTransaction.Detailed: return Strings.Program_Detailed;
+                case DocTypeDetailedTransaction.DetailedTwoSides: return Strings.Program_DetailedTwoSides;
+            }
+            return "";
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("רגילה");
+            _fakeResourceManager.ContainValue("מפורטת");
+            _fakeResourceManager.ContainValue("מפורטת שני צדדים");
+        }
+        
+        [Test]
+        public void TestSwitch2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string Localize(string fieldName)
+        {
+            switch (fieldName)
+            {
+                case ""ENT_DueDate"":
+                    return @""תאריך"";
+                case ""ENT_Referance"":
+                    return @""אסמכתא"";
+                case ""ENT_Description"":
+                    return @""פרטים"";
+            }
+            return fieldName;
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string Localize(string fieldName)
+        {
+            switch (fieldName)
+            {
+                case ""ENT_DueDate"":
+                    return Strings.Program_ENT_DueDate;
+                case ""ENT_Referance"":
+                    return Strings.Program_ENT_Referance;
+                case ""ENT_Description"":
+                    return Strings.Program_ENT_Description;
+            }
+            return fieldName;
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            _fakeResourceManager.ContainValue("תאריך");
+            _fakeResourceManager.ContainValue("אסמכתא");
+            _fakeResourceManager.ContainValue("פרטים");
+        }
+
+        [Test]
+        public void TestSwitch3()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string Localize(string fieldName)
+        {
+            switch (fieldName)
+            {
+                case nameof(ENT_Account_Id):
+                    return ""קוד חשבון"";
+                case nameof(ENT_Batch_Id):
+                    return ""מספר מנה"";
+                case nameof(ENT_Branch_Id):
+                    return ""Branch ID"";
+                case nameof(ENT_Curr_Id):
+                    return ""Currency ID"";
+            }
+        }
+            return fieldName;
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        public static string Localize(string fieldName)
+        {
+            switch (fieldName)
+            {
+                case nameof(ENT_Account_Id):
+                    return Strings.Program_ENT_Account_Id;
+                case nameof(ENT_Batch_Id):
+                    return Strings.Program_ENT_Batch_Id;
+                case nameof(ENT_Branch_Id):
+                    return Strings.Program_ENT_Branch_Id;
+                case nameof(ENT_Curr_Id):
+                    return Strings.Program_ENT_Curr_Id;
+            }
+            return fieldName;
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
         }
     }
 }

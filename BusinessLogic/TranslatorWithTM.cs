@@ -27,7 +27,17 @@ namespace BusinessLogic
             else
             {
                 Console.WriteLine($"Request translate for {unstranslatedText}");
-                translate = _translatorService.Translate(unstranslatedText, true);
+                //try
+                //{
+                    translate = _translatorService.Translate(unstranslatedText, true);
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (ex.Message == "The remote server returned an error: (429) Too Many Requests.")
+                //        _translateMemory.Add(unstranslatedText, "429 Too Many Requests");
+                //    throw;
+                //}
+
                 if (!HebrewUtils.IsHebrewString(translate))
                 {
                     _translateMemory.Add(unstranslatedText, translate);

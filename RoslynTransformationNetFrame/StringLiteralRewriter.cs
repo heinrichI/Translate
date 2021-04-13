@@ -319,12 +319,18 @@ namespace RoslynTransformationNetFrame
 
         public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
+            bool needRewrite = false;
+            //Nullable<SyntaxList<InterpolatedStringContentSyntax>> newList = null;
+            //InterpolatedStringExpressionSyntax newNode2 = node;
+
             foreach (InterpolatedStringContentSyntax content in node.Contents)
             {
                 if (content is InterpolatedStringTextSyntax stringContent)
                 {
                     if (HebrewUtils.IsHebrewString(stringContent.TextToken.ValueText))
                     {
+                        needRewrite = true;
+
                         char[] arrayEnded = new char[0];
                         char[] arrayStarted = new char[0];
                         string trimmed = stringContent.TextToken.ValueText;
@@ -391,14 +397,39 @@ namespace RoslynTransformationNetFrame
                         //node.Contents.(node.Contents, newList);
                         //var newNode3 = newNode2.AddContents(newList);
                         var newList = node.Contents.ReplaceRange(content, list);
-                        //return newNode3;
+
+                        var index = newList.IndexOf(content);
                         return node.WithContents(newList);
+
                         //return node.WithLeadingTrivia(node.GetLeadingTrivia());
                     }
                 }
             }
+            //if (needRewrite)
+            //{
+            //    return node.WithContents(newList);
+            //    //return newNode2;
+            //}
             return base.VisitInterpolatedStringExpression(node);
         }
+
+        /*public override SyntaxNode VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
+        {
+            if (HebrewUtils.IsHebrewString(node.TextToken.ValueText))
+            {
+                string name = GetNameAndAddToResource(node.TextToken.ValueText, node);
+
+                NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings");
+                var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name));
+                var interpolationSyntax = SyntaxFactory.Interpolation(newNode);
+                return interpolationSyntax;
+                //list.Add(interpolationSyntax);
+
+                //return parent.Contents.ReplaceRange(node, list);
+            }
+            return base.VisitInterpolatedStringText(node);
+        }*/
+
 
         private string GenerateName(SyntaxNode node)
         {
@@ -446,6 +477,12 @@ namespace RoslynTransformationNetFrame
                             }
                         }
                     }
+
+                    if (string.IsNullOrEmpty(postFix))
+                        postFix = GetFieldName(node.Parent.Parent.Parent.Parent);
+
+                    if (string.IsNullOrEmpty(postFix))
+                        postFix = GetCaseSwithName(node.Parent.Parent);
                 }
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
@@ -457,6 +494,45 @@ namespace RoslynTransformationNetFrame
                 newName = NameGenerator.Generate(newName, _translateResourceManager);
             
             return newName;
+        }
+
+        private string GetCaseSwithName(SyntaxNode node)
+        {
+            if (node is SwitchSectionSyntax switchSyntax)
+            {
+                SwitchLabelSyntax label = switchSyntax.Labels.FirstOrDefault();
+                if (label != null)
+                {
+                    var name = GetSimpleMember(label, last: true);
+                    if (string.IsNullOrEmpty(name)
+                        && label is CaseSwitchLabelSyntax caseLabel)
+                    {
+                        if (caseLabel.Value is InvocationExpressionSyntax inv)
+                        {
+                            name = inv.ArgumentList.Arguments.FirstOrDefault().Expression.ToString();
+                        }
+
+                        if (string.IsNullOrEmpty(name))
+                            name = caseLabel.Value.ToString().Trim('\"');
+                    }
+                    return name;
+                }
+            }
+            return null;
+        }
+
+        private string GetFieldName(SyntaxNode node)
+        {
+            if (node is FieldDeclarationSyntax field)
+            {
+                if (field.Modifiers.Any(m => m.ValueText == "const"))
+                { 
+                }
+
+                return field.Declaration.Variables.First().Identifier.ValueText;
+            }
+
+            return null;
         }
 
         private string GetObjectName(SyntaxNode node)
@@ -494,7 +570,7 @@ namespace RoslynTransformationNetFrame
         //    return null;
         //}
 
-        private string GetSimpleMember(SyntaxNode node)
+        private string GetSimpleMember(SyntaxNode node, bool last = false)
         {
             var simpleMembers = node
                      .DescendantNodes()
@@ -504,7 +580,8 @@ namespace RoslynTransformationNetFrame
             if (simpleMember != null && simpleMember.Expression != null)
             {
                 int constIndex = simpleMember.Expression.ToString().IndexOf("const", StringComparison.InvariantCultureIgnoreCase);
-                if (constIndex != -1)
+                if (constIndex != -1
+                    || last)
                 {
                     return simpleMember.Name.ToString();
 
