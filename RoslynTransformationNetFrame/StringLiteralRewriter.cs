@@ -276,6 +276,14 @@ namespace RoslynTransformationNetFrame
 
                     //var en = node.Parent.Parent.Parent.Parent.Parent.DescendantNodes().OfType<ExpressionStatementSyntax>();
 
+                    const string literal = "\n";
+                    bool trimmed = false;
+                    if (stringLiteral.EndsWith(literal))
+                    {
+                        trimmed = true;
+                        stringLiteral = stringLiteral.Substring(0, stringLiteral.Length - literal.Length);
+                    }
+
                     string name = GetNameAndAddToResource(stringLiteral, node);
 
                     //TypeSyntax variableTypeName = node..Type;
@@ -284,6 +292,14 @@ namespace RoslynTransformationNetFrame
 
                     var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
                         .WithTrailingTrivia(node.GetTrailingTrivia());
+                    if (trimmed)
+                    {
+                        var text = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("\n"))
+                            .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                            .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                        return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, newNode, text)
+                             .WithTrailingTrivia(node.GetTrailingTrivia()); ;
+                    }
                     return newNode;
                     //var newNode = LiteralExpression(SyntaxKind.StringLiteralExpression,
                     //    Literal(
@@ -320,7 +336,13 @@ namespace RoslynTransformationNetFrame
         public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
             bool needRewrite = false;
-            //Nullable<SyntaxList<InterpolatedStringContentSyntax>> newList = null;
+            SyntaxList<InterpolatedStringContentSyntax> newList = new SyntaxList<InterpolatedStringContentSyntax>();
+            //NameSyntax nameSyntax2 = SyntaxFactory.IdentifierName("Strings");
+            //var newNode2 = SyntaxFactory.QualifiedName(nameSyntax2, SyntaxFactory.IdentifierName("Test"));
+            //var interpolationSyntax2 = SyntaxFactory.Interpolation(newNode2);
+            //newList2 = newList2.Add(interpolationSyntax2);
+            //return node.WithContents(newList2);
+
             //InterpolatedStringExpressionSyntax newNode2 = node;
 
             foreach (InterpolatedStringContentSyntax content in node.Contents)
@@ -336,20 +358,33 @@ namespace RoslynTransformationNetFrame
                         string trimmed = stringContent.TextToken.ValueText;
 
                         foreach (var interpolatedSymbol in _interpolatedSymbols)
-                        {
-                            string trimmed1 = stringContent.TextToken.ValueText.TrimEnd(interpolatedSymbol);
-                            arrayEnded = Enumerable.Repeat<char>(interpolatedSymbol, stringContent.TextToken.ValueText.Length - trimmed1.Length).ToArray();
+                        { 
+                            if (arrayEnded.Length == 0)
+                            {
+                                string trimmed1 = trimmed.TrimEnd(interpolatedSymbol);
+                                int count = trimmed.Length - trimmed1.Length;
+                                arrayEnded = Enumerable.Repeat<char>(
+                                    interpolatedSymbol,
+                                    count)
+                                    .ToArray();
+                                if (count > 0)
+                                    trimmed = trimmed1;
+                            }
 
-                            trimmed = trimmed1.TrimStart(interpolatedSymbol);
-                            arrayStarted = Enumerable.Repeat<char>(interpolatedSymbol, trimmed1.Length - trimmed.Length).ToArray();
-
-                            if (arrayEnded.Length > 0
-                                || arrayStarted.Length > 0)
-                                break;
+                            if (arrayStarted.Length == 0)
+                            {
+                                string trimmed1 = trimmed.TrimStart(interpolatedSymbol);
+                                int count = trimmed.Length - trimmed1.Length;
+                                arrayStarted = Enumerable.Repeat<char>(
+                                    interpolatedSymbol,
+                                    count)
+                                    .ToArray();
+                                if (count > 0)
+                                    trimmed = trimmed1;
+                            }
                         }
 
-
-                        List<InterpolatedStringContentSyntax> list = new List<InterpolatedStringContentSyntax>();
+                        //List<InterpolatedStringContentSyntax> list = new List<InterpolatedStringContentSyntax>();
 
                         if (arrayStarted.Length > 0)
                         {
@@ -361,7 +396,7 @@ namespace RoslynTransformationNetFrame
                                 "valueText",
                                 SyntaxTriviaList.Empty);
                             var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
-                            list.Add(interpolatedWhiteSpace);
+                            newList = newList.Add(interpolatedWhiteSpace);
                         }
 
                         string name = GetNameAndAddToResource(trimmed, node);
@@ -374,7 +409,7 @@ namespace RoslynTransformationNetFrame
                         // .WithLeadingTrivia(node.GetLeadingTrivia());
 
                         var interpolationSyntax = SyntaxFactory.Interpolation(newNode);
-                        list.Add(interpolationSyntax);
+                        newList = newList.Add(interpolationSyntax);
                         // var newNode2 = node.ReplaceNode(content, interpolationSyntax);
 
                         if (arrayEnded.Length > 0)
@@ -389,27 +424,34 @@ namespace RoslynTransformationNetFrame
                                 "valueText",
                                 SyntaxTriviaList.Empty);
                             var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
-                            list.Add(interpolatedWhiteSpace);
+                            newList = newList.Add(interpolatedWhiteSpace);
                         }
                         //var newNode3 = newNode2.AddContents(interpolatedWhiteSpace);
                         //var newList = node.Contents.Insert(0, interpolatedWhiteSpace);
                         //return node.ReplaceNodes(node.Contents, newList);
                         //node.Contents.(node.Contents, newList);
                         //var newNode3 = newNode2.AddContents(newList);
-                        var newList = node.Contents.ReplaceRange(content, list);
+                        //var newList = node.Contents.ReplaceRange(content, list);
 
-                        var index = newList.IndexOf(content);
-                        return node.WithContents(newList);
+                        //var index = newList.IndexOf(content);
+                        //return node.WithContents(newList);
 
                         //return node.WithLeadingTrivia(node.GetLeadingTrivia());
                     }
+                    else
+                    {
+                        newList = newList.Add(content);
+                    }
+                }
+                else
+                {
+                    newList = newList.Add(content);
                 }
             }
-            //if (needRewrite)
-            //{
-            //    return node.WithContents(newList);
-            //    //return newNode2;
-            //}
+            if (needRewrite)
+            {
+                return node.WithContents(newList);
+            }
             return base.VisitInterpolatedStringExpression(node);
         }
 
@@ -496,7 +538,7 @@ namespace RoslynTransformationNetFrame
             return newName;
         }
 
-        private string GetCaseSwithName(SyntaxNode node)
+        private static string GetCaseSwithName(SyntaxNode node)
         {
             if (node is SwitchSectionSyntax switchSyntax)
             {
@@ -521,7 +563,7 @@ namespace RoslynTransformationNetFrame
             return null;
         }
 
-        private string GetFieldName(SyntaxNode node)
+        private static string GetFieldName(SyntaxNode node)
         {
             if (node is FieldDeclarationSyntax field)
             {
@@ -535,7 +577,7 @@ namespace RoslynTransformationNetFrame
             return null;
         }
 
-        private string GetObjectName(SyntaxNode node)
+        private static string GetObjectName(SyntaxNode node)
         {
             if (node is InvocationExpressionSyntax invocationExpression)
             {
@@ -549,6 +591,29 @@ namespace RoslynTransformationNetFrame
                         string name = identifier.ToString();
                         if (!BlackList.IsIn(name))
                             return name;
+                    }
+                }
+            }
+            else if (node is ArgumentListSyntax argumentList)
+            {
+                var first = argumentList.Arguments.FirstOrDefault();
+                if (first != null)
+                {
+                    if (first.Expression is IdentifierNameSyntax)
+                        return first.Expression.ToString();
+                    else if (first.Expression is ArrayCreationExpressionSyntax array)
+                    {
+                        var first2 = array.Initializer.Expressions.FirstOrDefault();
+                        if (first2 != null && first2 is InvocationExpressionSyntax inv)
+                        {
+                            var identifier = inv
+                             .DescendantNodes()
+                             .OfType<ExpressionSyntax>()
+                             .Where(m => m.Kind() == SyntaxKind.IdentifierName)
+                             .FirstOrDefault();
+                            if (identifier != null)
+                                return identifier.ToString();
+                        }
                     }
                 }
             }
@@ -570,7 +635,7 @@ namespace RoslynTransformationNetFrame
         //    return null;
         //}
 
-        private string GetSimpleMember(SyntaxNode node, bool last = false)
+        private static string GetSimpleMember(SyntaxNode node, bool last = false)
         {
             var simpleMembers = node
                      .DescendantNodes()
@@ -588,14 +653,15 @@ namespace RoslynTransformationNetFrame
                 }
                 else
                 {
-                    return simpleMember.Expression.ToString();
+                    if (simpleMember.Expression is IdentifierNameSyntax)
+                        return simpleMember.Expression.ToString();
                 }
             }
 
             return null;
         }
 
-        private string GetFirstMemberNameFromArgumentList(SyntaxNode node)
+        private static string GetFirstMemberNameFromArgumentList(SyntaxNode node)
         {
             try
             {

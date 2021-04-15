@@ -96,6 +96,11 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הוסף סעיף לפני"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הוסף סעיף אחרי"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הוסף סעיף ילד"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הוסף חשבון מרשימה"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הוסף חשבון חדש כילד"));
         }
 
         [Test]
@@ -140,6 +145,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תאריך אסמכתא"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תאריך ערך"));
+
         }
 
         [Test]
@@ -203,6 +211,13 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הצג"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("חשבון"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("פרוט"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סעיף"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מבנה"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("טקסט סה\"כ לשנה"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("קיצור לרווח / הפסד לכל הסעיפים הרלוונטיים"));
         }
 
         [Test]
@@ -265,9 +280,10 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("מספר");
-            _fakeResourceManager.ContainValue("סוג");
-            _fakeResourceManager.ContainValue("טקסט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מספר"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סוג"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("טקסט"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מאפיינים"));
         }
 
         [Test]
@@ -310,7 +326,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("טקסט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("טקסט"));
         }
 
         [Test]
@@ -357,7 +373,10 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("טקסט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("טקסט"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סוג"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("כותרת"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מטבע"));
         }
 
         [Test]
@@ -428,8 +447,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("מע\"מ");
-            _fakeResourceManager.ContainValue("מקדמות");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מע\"מ"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מקדמות"));
         }
 
         [Test]
@@ -503,6 +522,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הצג"));
         }
 
         [Test]
@@ -547,6 +567,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הצג"));
         }
 
         [Test]
@@ -589,6 +610,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode, "Organization.UI.Controls.Properties");
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הצג"));
         }
 
         /*
@@ -724,6 +746,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מאזנים"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("דוח רווח והפסד"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("דו התאמה לצרכי מס"));
         }
 
         [Test]
@@ -778,6 +803,11 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("עובד"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תאריך"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סוג"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סטטוס"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מסקנות"));
         }
 
         [Test]
@@ -820,7 +850,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("נא לקלוט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("נא לקלוט"));
         }
 
         [Test]
@@ -863,7 +893,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("נא לקלוט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("נא לקלוט"));
         }
 
         [Test]
@@ -906,7 +936,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("נא לקלוט");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("נא לקלוט"));
         }
 
         [Test]
@@ -963,7 +993,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("שימו לב: תקופת ניסיון מסתיימת ב");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("שימו לב: תקופת ניסיון מסתיימת ב"));
         }        
         
         [Test]
@@ -1010,11 +1040,40 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("מספר מסמכים שהופקו");
-            _fakeResourceManager.ContainValue("ניתן להפים עד");
-            _fakeResourceManager.ContainValue("מסמכים");
-            _fakeResourceManager.ContainValue("במקופה מ");
-            _fakeResourceManager.ContainValue("עד");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מספר מסמכים שהופקו:"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("ניתן להפים עד"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue(" ניתן להפים עד "));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מסמכים"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("במקופה מ"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue(" במקופה מ-"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("במקופה מ-"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("עד"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue(" עד "));
+        } 
+        
+        [Test]
+        public void TestInterpollatedString6()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static string ComposeDocumentLimitMessage(EntityLimitInfo info)
+        {
+            return $""DateTime: {info.CreatedEntityCount}"";
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(string.Empty, result);
         }
 
         [Test]
@@ -1089,11 +1148,11 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("סוג אשראי");
-            _fakeResourceManager.ContainValue("אשראי רגיל");
-            _fakeResourceManager.ContainValue("תשלומים");
-            _fakeResourceManager.ContainValue("קרדיט/תשלומים");
-            _fakeResourceManager.ContainValue("תשלום מיידי");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("סוג אשראי"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("אשראי רגיל"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תשלומים"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("קרדיט/תשלומים"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תשלום מיידי"));
         }
 
         [Test]
@@ -1136,7 +1195,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("שם");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("שם"));
         }
 
         [Test]
@@ -1179,9 +1238,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("ברירת מחדל");
-            _fakeResourceManager.ContainValue("זכות");
-            _fakeResourceManager.ContainValue("חובה");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("ברירת מחדל"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("זכות"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("חובה"));
         }
 
         [Test]
@@ -1238,7 +1297,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם"));
         }  
         
         [Test]
@@ -1273,7 +1332,7 @@ namespace HelloWorld
     {
         public void Init()
         {
-            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", Strings.Program_frmEdit + DocTypeDB.GetDocumentType(MainDocTypeId).Description); + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
+            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", Strings.Program_frmEdit + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
         }
     }
 }";
@@ -1281,7 +1340,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("עריכת מסמך");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("עריכת מסמך: "));
         } 
         
         [Test]
@@ -1328,8 +1387,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("בחירת מדפסת");
-            _fakeResourceManager.ContainValue("שמירה ויצוא לקובץ PDF");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("בחירת מדפסת"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("שמירה ויצוא לקובץ PDF"));
         }  
         
         [Test]
@@ -1378,7 +1437,7 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("ACC_AccountKey|70|מספר|ACC_FullName|230|שם");
+            Assert.IsTrue(_fakeResourceManager.ContainValue(@"תאריך העברת תשלום ע""י חברת אשראי לחשבון בנק של העסק בחודש עוקב"));
         }
 
         [Test]
@@ -1418,7 +1477,7 @@ namespace HelloWorld
         {
             using (var progress = RamForms.Manager.CreatePanelProgress())
             {
-                progress.DisplayMessage(Strings.Program_progress + ""\n""+ Strings.Program_progress2);
+                progress.DisplayMessage(Strings.Program_progress + ""\n"" + Strings.Program_progress2);
             }
         }
     }
@@ -1427,8 +1486,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("מתבצע בניית מסד נתונים ראשי.");
-            _fakeResourceManager.ContainValue("עם סיום התהליך תוכל להתחיל להינות מהשימוש במערכת");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מתבצע בניית מסד נתונים ראשי."));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("מתבצע בניית מסד נתונים ראשי.\n"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("עם סיום התהליך תוכל להתחיל להינות מהשימוש במערכת"));
         } 
         
         [Test]
@@ -1483,9 +1543,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("רגילה");
-            _fakeResourceManager.ContainValue("מפורטת");
-            _fakeResourceManager.ContainValue("מפורטת שני צדדים");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("רגילה"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מפורטת"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מפורטת שני צדדים"));
         }
         
         [Test]
@@ -1546,9 +1606,9 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            _fakeResourceManager.ContainValue("תאריך");
-            _fakeResourceManager.ContainValue("אסמכתא");
-            _fakeResourceManager.ContainValue("פרטים");
+            Assert.IsTrue(_fakeResourceManager.ContainValue("תאריך"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("אסמכתא"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("פרטים"));
         }
 
         [Test]
@@ -1577,7 +1637,6 @@ namespace HelloWorld
                 case nameof(ENT_Curr_Id):
                     return ""Currency ID"";
             }
-        }
             return fieldName;
         }
     }
@@ -1602,9 +1661,9 @@ namespace HelloWorld
                 case nameof(ENT_Batch_Id):
                     return Strings.Program_ENT_Batch_Id;
                 case nameof(ENT_Branch_Id):
-                    return Strings.Program_ENT_Branch_Id;
+                    return ""Branch ID"";
                 case nameof(ENT_Curr_Id):
-                    return Strings.Program_ENT_Curr_Id;
+                    return ""Currency ID"";
             }
             return fieldName;
         }
@@ -1614,6 +1673,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("קוד חשבון"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("מספר מנה"));
         }
     }
 }
