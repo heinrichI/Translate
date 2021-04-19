@@ -1438,6 +1438,48 @@ namespace HelloWorld
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
             Assert.IsTrue(_fakeResourceManager.ContainValue(@"תאריך העברת תשלום ע""י חברת אשראי לחשבון בנק של העסק בחודש עוקב"));
+        } 
+        
+        [Test]
+        public void TestGlobalVariable2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        string AccountTypeStr => IsSuppliers ? ""ספק"" : ""לקוח"";
+        string AccountsTypeStr => IsSuppliers ? ""ספקים"" : ""לקוחות"";
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        string AccountTypeStr => IsSuppliers ? Strings.Program_AccountTypeStr : Strings.Program_AccountTypeStr2;
+        string AccountsTypeStr => IsSuppliers ? Strings.Program_AccountsTypeStr : Strings.Program_AccountsTypeStr2;
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("ספק"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("לקוח"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("ספקים"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("לקוחות"));
         }
 
         [Test]
@@ -1675,6 +1717,63 @@ namespace HelloWorld
             Assert.AreEqual(expected, result);
             Assert.IsTrue(_fakeResourceManager.ContainValue("קוד חשבון"));
             Assert.IsTrue(_fakeResourceManager.ContainValue("מספר מנה"));
+        }
+        
+        [Test]
+        public void TestMenuAction()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateMenuAccounts()
+        {
+            ContextMenuStrip menuAccounts = new ContextMenuStrip();
+            menuAccounts.AddMenuItem(""mniEditAccount"", ""פרטי חשבון"", EditAccount);
+            if (!IsSuppliers)
+            {
+                menuAccounts.AddMenuItem(""mniAccountBanks"", ""בנקים ללקוח"", ShowAccountBanks).Visible = AdminState.DebugVersion; // by Rami's request
+                menuAccounts.AddMenuItem(""mniClientAgreements"", ""הסכם לקוח"", ShowClientAgreement);
+            }
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateMenuAccounts()
+        {
+            ContextMenuStrip menuAccounts = new ContextMenuStrip();
+            menuAccounts.AddMenuItem(""mniEditAccount"", Strings.Program_mniEditAccount, EditAccount);
+            if (!IsSuppliers)
+            {
+                menuAccounts.AddMenuItem(""mniAccountBanks"", Strings.Program_mniAccountBanks, ShowAccountBanks).Visible = AdminState.DebugVersion; // by Rami's request
+                menuAccounts.AddMenuItem(""mniClientAgreements"", Strings.Program_mniClientAgreements, ShowClientAgreement);
+            }
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("פרטי חשבון"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("בנקים ללקוח"));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הסכם לקוח"));
         }
     }
 }

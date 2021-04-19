@@ -10,14 +10,17 @@ namespace BusinessLogic
         private IResourceManager _englishResource;
         private IResourceManager _hebrewResource;
         private ITranslatorService _translatorService;
+        private readonly bool _skip429;
 
         public TranslateResourceManager(IResourceManager englishResource,
-            IResourceManager hebrewResource, 
-            ITranslatorService translatorService)
+            IResourceManager hebrewResource,
+            ITranslatorService translatorService,
+            bool skip429)
         {
             this._englishResource = englishResource;
             this._hebrewResource = hebrewResource;
             this._translatorService = translatorService;
+            this._skip429 = skip429;
         }
 
         public bool ContainValue(string name)
@@ -37,7 +40,27 @@ namespace BusinessLogic
         {
             _hebrewResource.Add(name, stringLiteral);
 
-            string translate = _translatorService.Translate(stringLiteral, false);
+            string translate = null;
+            try
+            {
+                translate = _translatorService.Translate(stringLiteral, false);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "The remote server returned an error: (429) Too Many Requests.")
+                {
+                    if (_skip429)
+                    {
+                        Console.WriteLine(ex.Message);
+                        _englishResource.Add(name, stringLiteral);
+                        return;
+                    }
+                    else
+                        throw;
+                }
+                else
+                    throw;
+            }
 
             if (HebrewUtils.IsHebrewString(translate))
             {
