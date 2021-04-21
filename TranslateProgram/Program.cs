@@ -22,6 +22,10 @@ namespace TranslateProgram
 
             string mode = ConfigurationManager.AppSettings.Get("Mode");
 
+            bool skip429 = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Skip429"));
+            if (skip429)
+                Console.WriteLine("Skip 429 error enable!");
+
             TranslateMemory tm = new TranslateMemory(fromLanguage, toLanguage);
             ITranslatorService translatorService = new GoogleTranslator(fromLanguage, toLanguage);
             TranslatorWithTM translatorWithTM = new TranslatorWithTM(tm, translatorService);
@@ -58,7 +62,8 @@ namespace TranslateProgram
                     TranslateResourceManager translateResourceManager = new TranslateResourceManager(
                     englishResource,
                     hebrewResource,
-                    translatorWithTM);
+                    translatorWithTM,
+                    skip429);
 
                     RoslynManager roslynManager = new RoslynManager(translateResourceManager,
                         solutionPath);

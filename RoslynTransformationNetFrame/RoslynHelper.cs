@@ -129,5 +129,174 @@ namespace RoslynTransformationNetFrame
             return newRoot.ToFullString();
         }
 
+        internal static string GetCaseSwithName(SyntaxNode node)
+        {
+            if (node is SwitchSectionSyntax switchSyntax)
+            {
+                SwitchLabelSyntax label = switchSyntax.Labels.FirstOrDefault();
+                if (label != null)
+                {
+                    var name = GetSimpleMember(label, last: true);
+                    if (string.IsNullOrEmpty(name)
+                        && label is CaseSwitchLabelSyntax caseLabel)
+                    {
+                        if (caseLabel.Value is InvocationExpressionSyntax inv)
+                        {
+                            name = inv.ArgumentList.Arguments.FirstOrDefault().Expression.ToString();
+                        }
+
+                        if (string.IsNullOrEmpty(name))
+                            name = caseLabel.Value.ToString().Trim('\"');
+                    }
+                    return name;
+                }
+            }
+            return null;
+        }
+
+        internal static string GetFieldName(SyntaxNode node)
+        {
+            if (node is FieldDeclarationSyntax field)
+            {
+                if (field.Modifiers.Any(m => m.ValueText == "const"))
+                {
+                }
+
+                return field.Declaration.Variables.First().Identifier.ValueText;
+            }
+
+            return null;
+        }
+
+        internal static string GetObjectName(SyntaxNode node)
+        {
+            if (node is InvocationExpressionSyntax invocationExpression)
+            {
+                //var sym = _semanticModel.GetSymbolInfo(invocationExpression);
+                var identifiers = node.DescendantNodes().OfType<IdentifierNameSyntax>().ToList();
+                if (identifiers.Count > 1)
+                {
+                    //если есть запрешенные слова, то возврашаем первый аргумент
+                    if (identifiers.Any(i => BlackList.IsIn(i.ToString())))
+                    {
+                        var firstArgument = invocationExpression.ArgumentList.Arguments.FirstOrDefault();
+                        if (firstArgument != null)
+                            return firstArgument.Expression.ToString().Trim('"');
+                    }
+                    else
+                    {
+                        var identifier = identifiers.FirstOrDefault();
+                        if (identifier != null)
+                        {
+                            string name = identifier.ToString();
+                                return name;
+                        }
+                    }
+                }
+            }
+            else if (node is ArgumentListSyntax argumentList)
+            {
+                var first = argumentList.Arguments.FirstOrDefault();
+                if (first != null)
+                {
+                    if (first.Expression is IdentifierNameSyntax)
+                        return first.Expression.ToString();
+                    else if (first.Expression is ArrayCreationExpressionSyntax array)
+                    {
+                        var first2 = array.Initializer.Expressions.FirstOrDefault();
+                        if (first2 != null && first2 is InvocationExpressionSyntax inv)
+                        {
+                            var identifier = inv
+                             .DescendantNodes()
+                             .OfType<ExpressionSyntax>()
+                             .Where(m => m.Kind() == SyntaxKind.IdentifierName)
+                             .FirstOrDefault();
+                            if (identifier != null)
+                                return identifier.ToString();
+                        }
+                    }
+                }
+            }
+            else if (node is PropertyDeclarationSyntax property)
+            {
+                return property.Identifier.ValueText;
+            }
+            return null;
+        }
+
+        //private string GetSimpleAssigment(SyntaxNode parent)
+        //{
+        //    var simpleMember = node
+        //                       .DescendantNodes()
+        //                       .OfType<AssignmentExpressionSyntax>()
+        //                       .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+        //                       .FirstOrDefault();
+        //    if (simpleMember != null)
+        //    {
+        //        return simpleMember.Name.ToString();
+        //    }
+
+        //    return null;
+        //}
+
+        internal static string GetSimpleMember(SyntaxNode node, bool last = false)
+        {
+            var simpleMembers = node
+                     .DescendantNodes()
+                     .OfType<MemberAccessExpressionSyntax>()
+                     .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression);
+            MemberAccessExpressionSyntax simpleMember = simpleMembers.FirstOrDefault();
+            if (simpleMember != null && simpleMember.Expression != null)
+            {
+                int constIndex = simpleMember.Expression.ToString().IndexOf("const", StringComparison.InvariantCultureIgnoreCase);
+                if (constIndex != -1
+                    || last)
+                {
+                    return simpleMember.Name.ToString();
+
+                }
+                else
+                {
+                    if (simpleMember.Expression is IdentifierNameSyntax)
+                        return simpleMember.Expression.ToString();
+                }
+            }
+
+            return null;
+        }
+
+        internal static string GetFirstMemberNameFromArgumentList(SyntaxNode node)
+        {
+            try
+            {
+                var argumentList = node.DescendantNodes().OfType<BaseArgumentListSyntax>().FirstOrDefault();
+                if (argumentList != null)
+                {
+                    var simpleMember = argumentList
+                        .DescendantNodes()
+                        .OfType<MemberAccessExpressionSyntax>()
+                        .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                        .FirstOrDefault();
+                    if (simpleMember != null)
+                    {
+                        return simpleMember.Name.ToString();
+                    }
+                }
+                /*else if (node is ArgumentListSyntax argumenList)
+                {
+                    var firstArgument = argumenList.Arguments.FirstOrDefault();
+                    if (firstArgument != null)
+                        return firstArgument.Expression.ToString().Trim('"');
+                }*/
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{node.ToString()} {ex.Message}");
+                //throw;
+            }
+
+            return string.Empty;
+        }
+
     }
 }

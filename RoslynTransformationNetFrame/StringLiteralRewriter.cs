@@ -486,7 +486,7 @@ namespace RoslynTransformationNetFrame
                 string postFix = null;
                 if (string.IsNullOrEmpty(postFix)
                      && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
-                    postFix = GetSimpleMember(node.Parent);
+                    postFix = RoslynHelper.GetSimpleMember(node.Parent);
                 if (string.IsNullOrEmpty(postFix)) 
                     postFix = _expressionLeft;
                 if (string.IsNullOrEmpty(postFix))
@@ -498,33 +498,33 @@ namespace RoslynTransformationNetFrame
                 if (!node.IsKind(SyntaxKind.InterpolatedStringExpression))
                 {
                     if (string.IsNullOrEmpty(postFix))
-                        postFix = GetFirstMemberNameFromArgumentList(node.Parent.Parent);
+                        postFix = RoslynHelper.GetFirstMemberNameFromArgumentList(node.Parent.Parent);
                     if (!(node.Parent.Parent.Parent is BlockSyntax))
                     {
                         if (string.IsNullOrEmpty(postFix))
-                            postFix = GetObjectName(node.Parent.Parent.Parent);
+                            postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent);
                         if (!(node.Parent.Parent.Parent.Parent is BlockSyntax))
                         {
                             if (string.IsNullOrEmpty(postFix))
-                                postFix = GetObjectName(node.Parent.Parent.Parent.Parent);
+                                postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent);
                             if (!(node.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
                             {
                                 if (string.IsNullOrEmpty(postFix))
-                                    postFix = GetObjectName(node.Parent.Parent.Parent.Parent.Parent);
+                                    postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent);
                                 if (!(node.Parent.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
                                 {
                                     if (string.IsNullOrEmpty(postFix))
-                                        postFix = GetObjectName(node.Parent.Parent.Parent.Parent.Parent.Parent);
+                                        postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent.Parent);
                                 }
                             }
                         }
                     }
 
                     if (string.IsNullOrEmpty(postFix))
-                        postFix = GetFieldName(node.Parent.Parent.Parent.Parent);
+                        postFix = RoslynHelper.GetFieldName(node.Parent.Parent.Parent.Parent);
 
                     if (string.IsNullOrEmpty(postFix))
-                        postFix = GetCaseSwithName(node.Parent.Parent);
+                        postFix = RoslynHelper.GetCaseSwithName(node.Parent.Parent);
                 }
                 if (string.IsNullOrEmpty(postFix))
                     postFix = _currentMethod;
@@ -536,157 +536,6 @@ namespace RoslynTransformationNetFrame
                 newName = NameGenerator.Generate(newName, _translateResourceManager);
             
             return newName;
-        }
-
-        private static string GetCaseSwithName(SyntaxNode node)
-        {
-            if (node is SwitchSectionSyntax switchSyntax)
-            {
-                SwitchLabelSyntax label = switchSyntax.Labels.FirstOrDefault();
-                if (label != null)
-                {
-                    var name = GetSimpleMember(label, last: true);
-                    if (string.IsNullOrEmpty(name)
-                        && label is CaseSwitchLabelSyntax caseLabel)
-                    {
-                        if (caseLabel.Value is InvocationExpressionSyntax inv)
-                        {
-                            name = inv.ArgumentList.Arguments.FirstOrDefault().Expression.ToString();
-                        }
-
-                        if (string.IsNullOrEmpty(name))
-                            name = caseLabel.Value.ToString().Trim('\"');
-                    }
-                    return name;
-                }
-            }
-            return null;
-        }
-
-        private static string GetFieldName(SyntaxNode node)
-        {
-            if (node is FieldDeclarationSyntax field)
-            {
-                if (field.Modifiers.Any(m => m.ValueText == "const"))
-                { 
-                }
-
-                return field.Declaration.Variables.First().Identifier.ValueText;
-            }
-
-            return null;
-        }
-
-        private static string GetObjectName(SyntaxNode node)
-        {
-            if (node is InvocationExpressionSyntax invocationExpression)
-            {
-                //var sym = _semanticModel.GetSymbolInfo(invocationExpression);
-                var identifiers = node.DescendantNodes().OfType<IdentifierNameSyntax>().ToList();
-                if (identifiers.Count > 1)
-                {
-                    var identifier = identifiers.FirstOrDefault();
-                    if (identifier != null)
-                    {
-                        string name = identifier.ToString();
-                        if (!BlackList.IsIn(name))
-                            return name;
-                    }
-                }
-            }
-            else if (node is ArgumentListSyntax argumentList)
-            {
-                var first = argumentList.Arguments.FirstOrDefault();
-                if (first != null)
-                {
-                    if (first.Expression is IdentifierNameSyntax)
-                        return first.Expression.ToString();
-                    else if (first.Expression is ArrayCreationExpressionSyntax array)
-                    {
-                        var first2 = array.Initializer.Expressions.FirstOrDefault();
-                        if (first2 != null && first2 is InvocationExpressionSyntax inv)
-                        {
-                            var identifier = inv
-                             .DescendantNodes()
-                             .OfType<ExpressionSyntax>()
-                             .Where(m => m.Kind() == SyntaxKind.IdentifierName)
-                             .FirstOrDefault();
-                            if (identifier != null)
-                                return identifier.ToString();
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        //private string GetSimpleAssigment(SyntaxNode parent)
-        //{
-        //    var simpleMember = node
-        //                       .DescendantNodes()
-        //                       .OfType<AssignmentExpressionSyntax>()
-        //                       .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-        //                       .FirstOrDefault();
-        //    if (simpleMember != null)
-        //    {
-        //        return simpleMember.Name.ToString();
-        //    }
-
-        //    return null;
-        //}
-
-        private static string GetSimpleMember(SyntaxNode node, bool last = false)
-        {
-            var simpleMembers = node
-                     .DescendantNodes()
-                     .OfType<MemberAccessExpressionSyntax>()
-                     .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression);
-            MemberAccessExpressionSyntax simpleMember = simpleMembers.FirstOrDefault();
-            if (simpleMember != null && simpleMember.Expression != null)
-            {
-                int constIndex = simpleMember.Expression.ToString().IndexOf("const", StringComparison.InvariantCultureIgnoreCase);
-                if (constIndex != -1
-                    || last)
-                {
-                    return simpleMember.Name.ToString();
-
-                }
-                else
-                {
-                    if (simpleMember.Expression is IdentifierNameSyntax)
-                        return simpleMember.Expression.ToString();
-                }
-            }
-
-            return null;
-        }
-
-        private static string GetFirstMemberNameFromArgumentList(SyntaxNode node)
-        {
-            try
-            {
-                //BracketedArgumentListSyntax
-                var argumentList = node.DescendantNodes().OfType<BaseArgumentListSyntax>().FirstOrDefault();
-                if (argumentList != null)
-                {
-                    var simpleMember = argumentList
-                        .DescendantNodes()
-                        .OfType<MemberAccessExpressionSyntax>()
-                        .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                        .FirstOrDefault();
-                    if (simpleMember != null)
-                    {
-                        return simpleMember.Name.ToString();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"{node.ToString()} {ex.Message}");
-                //throw;
-            }
-
-            return string.Empty;
         }
 
         private string GetConstName(SyntaxNode node)

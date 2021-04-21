@@ -264,11 +264,11 @@ namespace HelloWorld
         {
             GridColumn column = view.AddGridColumn(""TopIndex"", Strings.Program_column, """");
             column.SortOrder = ColumnSortOrder.Ascending;
-            view.AddGridColumn(""RowType"", Strings.Program_InitGridColumns, """",
+            view.AddGridColumn(""RowType"", Strings.Program_RowType, """",
                 new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_RepositoryItemImageComboBox, Strings.Program_RepositoryItemImageComboBox2, Strings.Program_RepositoryItemImageComboBox3 }),
                 true, false, false, true);
             view.AddGridColumn(""RowText"", Strings.Program_RepositoryItemImageComboBox, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
-            view.AddGridColumn(""NoField1"", Strings.Program_InitGridColumns2, """", null, true, false, false, true);
+            view.AddGridColumn(""NoField1"", Strings.Program_NoField1, """", null, true, false, false, true);
 
             view.SetButtonEdit(""NoField1"", """", EditProperties, null);
 
@@ -318,7 +318,7 @@ namespace HelloWorld
     {
         private void InitGridColumns() 
         {
-            view.AddGridColumn(""RowText"", Strings.Program_InitGridColumns, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
+            view.AddGridColumn(""RowText"", Strings.Program_RowText, """", new RepositoryItemTextEdit().InitTextEdit(), true, false, false, true);
         }
     }
 }";
@@ -363,7 +363,7 @@ namespace HelloWorld
     {
         private void InitGridColumns() 
         {
-            view.AddGridColumn(""RowType"", Strings.Program_InitGridColumns, """",
+            view.AddGridColumn(""RowType"", Strings.Program_RowType, """",
                 new RepositoryItemImageComboBox().InitImageCombo(new[] { 0, 1, 2 }, new[] { Strings.Program_RepositoryItemImageComboBox, Strings.Program_RepositoryItemImageComboBox2, Strings.Program_RepositoryItemImageComboBox3 }),
                 true, false, false, true);
         }

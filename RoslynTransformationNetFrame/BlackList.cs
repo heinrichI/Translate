@@ -8,7 +8,7 @@ namespace RoslynTransformationNetFrame
 {
     internal class BlackList
     {
-        static readonly string[] _blackList = { "view", "object" };
+        static readonly string[] _blackList = { "view", "object", "AddMenuItem" };
 
         internal static bool IsIn(string name)
         {
