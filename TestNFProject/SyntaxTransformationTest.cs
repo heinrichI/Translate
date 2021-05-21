@@ -1775,5 +1775,91 @@ namespace HelloWorld
             Assert.IsTrue(_fakeResourceManager.ContainValue("בנקים ללקוח"));
             Assert.IsTrue(_fakeResourceManager.ContainValue("הסכם לקוח"));
         }
+    
+        [Test]
+        public void TestItemsProgram()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateMenuAccounts()
+        {
+            itemsProgram.Add(MenuKeys.ProgramSmsSettings, ""הגדרות שליחת SMS"", null);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private void CreateMenuAccounts()
+        {
+            itemsProgram.Add(MenuKeys.ProgramSmsSettings, Strings.Program_ProgramSmsSettings, null);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הגדרות שליחת SMS"));
+        }
+
+        [Test]
+        public void Test2()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        protected virtual void InitGridMenu()
+        {
+            view.AddGridMenuItem(""הצג מסמך"", ShowFocusedDocument);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        protected virtual void InitGridMenu()
+        {
+            view.AddGridMenuItem(Strings.Program_InitGridMenu, ShowFocusedDocument);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("הצג מסמך"));
+        }
     }
 }

@@ -483,51 +483,7 @@ namespace RoslynTransformationNetFrame
             }
             else
             {
-                string postFix = null;
-                if (string.IsNullOrEmpty(postFix)
-                     && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
-                    postFix = RoslynHelper.GetSimpleMember(node.Parent);
-                if (string.IsNullOrEmpty(postFix)) 
-                    postFix = _expressionLeft;
-                if (string.IsNullOrEmpty(postFix))
-                    postFix = _variableName;
-                if (string.IsNullOrEmpty(postFix))
-                    postFix = GetConstName(node.Parent.Parent);
-                // if (string.IsNullOrEmpty(postFix))
-                //    postFix = GetSimpleAssigment(node.Parent);
-                if (!node.IsKind(SyntaxKind.InterpolatedStringExpression))
-                {
-                    if (string.IsNullOrEmpty(postFix))
-                        postFix = RoslynHelper.GetFirstMemberNameFromArgumentList(node.Parent.Parent);
-                    if (!(node.Parent.Parent.Parent is BlockSyntax))
-                    {
-                        if (string.IsNullOrEmpty(postFix))
-                            postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent);
-                        if (!(node.Parent.Parent.Parent.Parent is BlockSyntax))
-                        {
-                            if (string.IsNullOrEmpty(postFix))
-                                postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent);
-                            if (!(node.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
-                            {
-                                if (string.IsNullOrEmpty(postFix))
-                                    postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent);
-                                if (!(node.Parent.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
-                                {
-                                    if (string.IsNullOrEmpty(postFix))
-                                        postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent.Parent);
-                                }
-                            }
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(postFix))
-                        postFix = RoslynHelper.GetFieldName(node.Parent.Parent.Parent.Parent);
-
-                    if (string.IsNullOrEmpty(postFix))
-                        postFix = RoslynHelper.GetCaseSwithName(node.Parent.Parent);
-                }
-                if (string.IsNullOrEmpty(postFix))
-                    postFix = _currentMethod;
+               string postFix = GetPostFix(node);
 
                 newName = $"{_currentClass}_{postFix}";
             }
@@ -536,6 +492,62 @@ namespace RoslynTransformationNetFrame
                 newName = NameGenerator.Generate(newName, _translateResourceManager);
             
             return newName;
+        }
+
+        private string GetPostFix(SyntaxNode node)
+        {
+            string postFix = null;
+            if (string.IsNullOrEmpty(postFix)
+                 && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
+            {
+                postFix = RoslynHelper.GetSimpleMember(node.Parent);
+                if (!string.IsNullOrEmpty(postFix))
+                    return postFix;
+            }
+
+            if (!string.IsNullOrEmpty(_expressionLeft))
+                return _expressionLeft;
+            if (!string.IsNullOrEmpty(_variableName))
+                return _variableName;
+            if (string.IsNullOrEmpty(postFix))
+                postFix = GetConstName(node.Parent.Parent);
+            // if (string.IsNullOrEmpty(postFix))
+            //    postFix = GetSimpleAssigment(node.Parent);
+            if (!node.IsKind(SyntaxKind.InterpolatedStringExpression))
+            {
+                if (string.IsNullOrEmpty(postFix))
+                    postFix = RoslynHelper.GetFirstMemberNameFromArgumentList(node.Parent.Parent);
+                if (!(node.Parent.Parent.Parent is BlockSyntax))
+                {
+                    if (string.IsNullOrEmpty(postFix))
+                        postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent);
+                    if (!(node.Parent.Parent.Parent.Parent is BlockSyntax))
+                    {
+                        if (string.IsNullOrEmpty(postFix))
+                            postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent);
+                        if (!(node.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
+                        {
+                            if (string.IsNullOrEmpty(postFix))
+                                postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent);
+                            if (!(node.Parent.Parent.Parent.Parent.Parent.Parent is BlockSyntax))
+                            {
+                                if (string.IsNullOrEmpty(postFix))
+                                    postFix = RoslynHelper.GetObjectName(node.Parent.Parent.Parent.Parent.Parent.Parent);
+                            }
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(postFix))
+                    postFix = RoslynHelper.GetFieldName(node.Parent.Parent.Parent.Parent);
+
+                if (string.IsNullOrEmpty(postFix))
+                    postFix = RoslynHelper.GetCaseSwithName(node.Parent.Parent);
+            }
+            if (string.IsNullOrEmpty(postFix))
+                postFix = _currentMethod;
+
+            return postFix;
         }
 
         private string GetConstName(SyntaxNode node)

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using BusinessLogic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -181,7 +182,16 @@ namespace RoslynTransformationNetFrame
                     {
                         var firstArgument = invocationExpression.ArgumentList.Arguments.FirstOrDefault();
                         if (firstArgument != null)
-                            return firstArgument.Expression.ToString().Trim('"');
+                        {
+                            if (firstArgument.Expression is MemberAccessExpressionSyntax membExp)
+                                return membExp.Name.ToString();
+                            else if (firstArgument.Expression is LiteralExpressionSyntax)
+                            {
+                                string text = firstArgument.Expression.ToString().Trim('"');
+                                if (!HebrewUtils.IsHebrewString(text))
+                                    return text;
+                            }
+                        }
                     }
                     else
                     {
