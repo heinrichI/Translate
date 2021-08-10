@@ -89,5 +89,21 @@ namespace BusinessLogic
         {
             return _hebrewResource.GetKeyByValue(value);
         }
+
+        public void Synchronize()
+        {
+            foreach (var hebString in _hebrewResource)
+            {
+                if (!_englishResource.ContainKey(hebString.Key))
+                {
+                    var translate = _translatorService.Translate(hebString.Value, false);
+                    if (!HebrewUtils.IsHebrewString(translate))
+                    {
+                        _englishResource.Add(hebString.Key, translate);
+                        Console.WriteLine($"Synchronize: missing {hebString.Key} in English resource.");
+                    }
+                }
+            }
+        }
     }
 }

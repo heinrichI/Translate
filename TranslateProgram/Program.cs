@@ -65,6 +65,8 @@ namespace TranslateProgram
                     translatorWithTM,
                     skip429);
 
+                    translateResourceManager.Synchronize();
+
                     RoslynManager roslynManager = new RoslynManager(translateResourceManager,
                         solutionPath);
 

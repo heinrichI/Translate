@@ -320,7 +320,7 @@ namespace RoslynTransformationNetFrame
             if (_translateResourceManager.ContainValue(stringLiteral))
             {
                 string name = _translateResourceManager.GetKeyByValue(stringLiteral);
-                Console.WriteLine($"Resource alreade have string {stringLiteral}, insert him key {name}");
+                Console.WriteLine($"Resource already have string {stringLiteral}, insert him key {name}");
                 return name;
             }
             else
