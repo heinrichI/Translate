@@ -258,7 +258,6 @@ namespace RoslynTransformationNetFrame
 
                 if (HebrewUtils.IsHebrewString(stringLiteral))
                 {
-
                     //var en1 = node.DescendantNodes().OfType<IdentifierNameSyntax>().FirstOrDefault();
                     //var en2 = node.Parent.Parent.DescendantNodes().OfType<IdentifierNameSyntax>();//.Where(i => i.Kind() == SyntaxKind.;
                     ////var enumType = context.SemanticModel.GetTypeInfo(switchBlock.Expression).Type as INamedTypeSymbol;
@@ -276,13 +275,21 @@ namespace RoslynTransformationNetFrame
 
                     //var en = node.Parent.Parent.Parent.Parent.Parent.DescendantNodes().OfType<ExpressionStatementSyntax>();
 
-                    const string literal = "\n";
-                    bool trimmed = false;
-                    if (stringLiteral.EndsWith(literal))
+                    Replacer replacer = new Replacer();
+                    replacer.AddNodeAction = (string literal,
+                        LiteralExpressionSyntax oldNode,
+                        QualifiedNameSyntax newNode2) =>
                     {
-                        trimmed = true;
-                        stringLiteral = stringLiteral.Substring(0, stringLiteral.Length - literal.Length);
-                    }
+                        var text = SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression, 
+                            SyntaxFactory.Literal(literal))
+                            .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                            .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                        return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, newNode2, text)
+                             .WithTrailingTrivia(oldNode.GetTrailingTrivia());
+                    };
+
+                    stringLiteral = replacer.GetClearedStringLiteral(stringLiteral);
 
                     string name = GetNameAndAddToResource(stringLiteral, node);
 
@@ -290,16 +297,25 @@ namespace RoslynTransformationNetFrame
                     NameSyntax nameSyntax = SyntaxFactory.IdentifierName("Strings")
                         .WithLeadingTrivia(node.GetLeadingTrivia());
 
-                    var newNode = SyntaxFactory.QualifiedName(nameSyntax, SyntaxFactory.IdentifierName(name))
+                    QualifiedNameSyntax newNode = SyntaxFactory.QualifiedName(
+                        nameSyntax, 
+                        SyntaxFactory.IdentifierName(name))
                         .WithTrailingTrivia(node.GetTrailingTrivia());
-                    if (trimmed)
+
+                    var replaced = replacer.AddNode(node, newNode);
+                    if (replaced != null)
                     {
-                        var text = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("\n"))
-                            .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
-                            .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
-                        return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, newNode, text)
-                             .WithTrailingTrivia(node.GetTrailingTrivia()); ;
+                        return replaced;
                     }
+                    //if (trimmed)
+                    //{
+                    //    var text = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                    //    SyntaxFactory.Literal(literal))
+                    //        .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                    //        .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                    //    return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, newNode, text)
+                    //         .WithTrailingTrivia(node.GetTrailingTrivia());
+                    //}
                     return newNode;
                     //var newNode = LiteralExpression(SyntaxKind.StringLiteralExpression,
                     //    Literal(

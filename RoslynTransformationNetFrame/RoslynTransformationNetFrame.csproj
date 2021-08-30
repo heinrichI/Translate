@@ -230,6 +230,7 @@
     <Compile Include="BlackList.cs" />
     <Compile Include="ClassRenamer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Replacer.cs" />
     <Compile Include="RoslynHelper.cs" />
     <Compile Include="StringLiteralRewriter.cs" />
     <Compile Include="RoslynManager.cs" />

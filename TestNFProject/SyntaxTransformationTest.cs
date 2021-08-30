@@ -1074,6 +1074,57 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(string.Empty, result);
+        }   
+        
+        [Test]
+        public void AddWhiteSpace()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static bool ComposeDocumentLimitMessage(EntityLimitInfo info)
+        {
+            if (!MessageUtils.AskQuestion(
+                ""קובץ "" + ""Client_Tmp *.bak "" ))
+                return true;
+            return false
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static bool ComposeDocumentLimitMessage(EntityLimitInfo info)
+        {
+            if (!MessageUtils.AskQuestion(
+                Strings.Program_MessageUtils + "" "" + ""Client_Tmp *.bak "" ))
+                return true;
+            return false
+        }
+    }
+}";
+
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+            Assert.IsTrue(_fakeResourceManager.ContainValue("קובץ"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("קובץ "));
         }
 
         [Test]
@@ -1332,7 +1383,7 @@ namespace HelloWorld
     {
         public void Init()
         {
-            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", Strings.Program_frmEdit + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
+            RamControlUtils.SetFormDefaults(frmEdit, ""frmEdit"", Strings.Program_frmEdit + "" "" + DocTypeDB.GetDocumentType(MainDocTypeId).Description);
         }
     }
 }";
@@ -1340,7 +1391,8 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(expected, result);
-            Assert.IsTrue(_fakeResourceManager.ContainValue("עריכת מסמך: "));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("עריכת מסמך: "));
+            Assert.IsTrue(_fakeResourceManager.ContainValue("עריכת מסמך:"));
         } 
         
         [Test]
@@ -1483,7 +1535,7 @@ namespace HelloWorld
         }
 
         [Test]
-        public void TestNewLineSkip()
+        public void AddNewLine()
         {
             const string sourceCode =
 @"using System;
