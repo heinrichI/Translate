@@ -347,8 +347,6 @@ namespace RoslynTransformationNetFrame
             }
         }
 
-        static readonly char[] _interpolatedSymbols = { ' ', '-' };
-
         public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
             bool needRewrite = false;
@@ -369,51 +367,15 @@ namespace RoslynTransformationNetFrame
                     {
                         needRewrite = true;
 
-                        char[] arrayEnded = new char[0];
-                        char[] arrayStarted = new char[0];
+                        ReplacerInterpolatedString replacer = new ReplacerInterpolatedString();
                         string trimmed = stringContent.TextToken.ValueText;
 
-                        foreach (var interpolatedSymbol in _interpolatedSymbols)
-                        { 
-                            if (arrayEnded.Length == 0)
-                            {
-                                string trimmed1 = trimmed.TrimEnd(interpolatedSymbol);
-                                int count = trimmed.Length - trimmed1.Length;
-                                arrayEnded = Enumerable.Repeat<char>(
-                                    interpolatedSymbol,
-                                    count)
-                                    .ToArray();
-                                if (count > 0)
-                                    trimmed = trimmed1;
-                            }
+                        trimmed = replacer.Trim(trimmed);
 
-                            if (arrayStarted.Length == 0)
-                            {
-                                string trimmed1 = trimmed.TrimStart(interpolatedSymbol);
-                                int count = trimmed.Length - trimmed1.Length;
-                                arrayStarted = Enumerable.Repeat<char>(
-                                    interpolatedSymbol,
-                                    count)
-                                    .ToArray();
-                                if (count > 0)
-                                    trimmed = trimmed1;
-                            }
-                        }
 
                         //List<InterpolatedStringContentSyntax> list = new List<InterpolatedStringContentSyntax>();
 
-                        if (arrayStarted.Length > 0)
-                        {
-                            string whiteSpaceText = new string(arrayStarted);
-
-                            var newTextToken = SyntaxFactory.Token(SyntaxTriviaList.Empty,
-                                SyntaxKind.InterpolatedStringTextToken,
-                                whiteSpaceText,
-                                "valueText",
-                                SyntaxTriviaList.Empty);
-                            var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
-                            newList = newList.Add(interpolatedWhiteSpace);
-                        }
+                        newList = replacer.AddStartTokens(newList);
 
                         string name = GetNameAndAddToResource(trimmed, node);
 
@@ -428,20 +390,8 @@ namespace RoslynTransformationNetFrame
                         newList = newList.Add(interpolationSyntax);
                         // var newNode2 = node.ReplaceNode(content, interpolationSyntax);
 
-                        if (arrayEnded.Length > 0)
-                        {
-                            string whiteSpaceText = new string(arrayEnded);
-
-                            //var whiteSpace = SyntaxFactory.ParseTokens(" ").First();
-                            //var whiteSpace = SyntaxFactory.Token(SyntaxKind.WhitespaceTrivia);
-                            var newTextToken = SyntaxFactory.Token(SyntaxTriviaList.Empty,
-                                SyntaxKind.InterpolatedStringTextToken,
-                                whiteSpaceText,
-                                "valueText",
-                                SyntaxTriviaList.Empty);
-                            var interpolatedWhiteSpace = SyntaxFactory.InterpolatedStringText(newTextToken);
-                            newList = newList.Add(interpolatedWhiteSpace);
-                        }
+                        newList = replacer.AddEndTokens(newList);
+                        
                         //var newNode3 = newNode2.AddContents(interpolatedWhiteSpace);
                         //var newList = node.Contents.Insert(0, interpolatedWhiteSpace);
                         //return node.ReplaceNodes(node.Contents, newList);

@@ -231,9 +231,11 @@
     <Compile Include="ClassRenamer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Replacer.cs" />
+    <Compile Include="ReplacerInterpolatedString.cs" />
     <Compile Include="RoslynHelper.cs" />
     <Compile Include="StringLiteralRewriter.cs" />
     <Compile Include="RoslynManager.cs" />
+    <Compile Include="SymbolContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -1074,6 +1074,51 @@ namespace HelloWorld
 
             string result = _testClass.Rewrite(sourceCode);
             Assert.AreEqual(string.Empty, result);
+        }       
+        
+        [Test]
+        public void TestInterpollatedString7()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {                
+            MessageUtils.ShowError($""שגיאה בשחזור מסד נתונים:\n{result.ErrorMessage}"");
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {                
+            MessageUtils.ShowError($""{Strings.Program_LoadPackageDataByFiles}\n{result.ErrorMessage}"");
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+
+            Assert.IsTrue(_fakeResourceManager.ContainValue("שגיאה בשחזור מסד נתונים:"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה בשחזור מסד נתונים:\n"));
         }   
         
         [Test]
