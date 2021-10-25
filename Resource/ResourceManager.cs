@@ -1,5 +1,6 @@
 ﻿using BusinessLogic;
 using Microsoft.CSharp;
+using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Resources;
 using System.Resources.Tools;
+using System.Runtime.Serialization;
 
 namespace Resource
 {
@@ -45,8 +47,17 @@ namespace Resource
                 while (dict.MoveNext())
                 {
                     ResXDataNode node = (ResXDataNode)dict.Value;
-                    var typeResolutionService = node.GetValue((ITypeResolutionService)null);
-                    string stringValue = typeResolutionService?.ToString();
+                    string stringValue = null;
+                    try
+                    {
+                        var typeResolutionService = node.GetValue((ITypeResolutionService)null);
+                        stringValue = typeResolutionService?.ToString();
+                    }
+                    catch (SerializationException ex)
+                    {
+                        Console.WriteLine($"Error {ex.Message} on read {resxFilePath}!");
+                    }
+                  
                     if (!string.IsNullOrEmpty(stringValue))
                     {
                         _dict.Add(node.Name, stringValue);
