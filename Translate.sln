@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestCoreProject", "TestCore
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNFProject", "TestNFProject\TestNFProject.csproj", "{10C96622-5CEE-4822-A945-54915EB31CC4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopyPasteTranslate", "CopyPasteTranslate\CopyPasteTranslate.csproj", "{B47D7835-B9B4-4A70-B0EA-55B980CE66C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyPasteTranslateTest", "CopyPasteTranslateTest\CopyPasteTranslateTest.csproj", "{9E936450-ADAC-4D09-9402-D6FE73B04A91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{10C96622-5CEE-4822-A945-54915EB31CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10C96622-5CEE-4822-A945-54915EB31CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10C96622-5CEE-4822-A945-54915EB31CC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B47D7835-B9B4-4A70-B0EA-55B980CE66C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B47D7835-B9B4-4A70-B0EA-55B980CE66C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B47D7835-B9B4-4A70-B0EA-55B980CE66C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B47D7835-B9B4-4A70-B0EA-55B980CE66C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E936450-ADAC-4D09-9402-D6FE73B04A91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E936450-ADAC-4D09-9402-D6FE73B04A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E936450-ADAC-4D09-9402-D6FE73B04A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E936450-ADAC-4D09-9402-D6FE73B04A91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

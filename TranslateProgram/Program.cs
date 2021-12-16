@@ -1,10 +1,12 @@
 ﻿using BusinessLogic;
+using CopyPasteTranslate;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Resource;
 using RoslynTransformationNetFrame;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using TranslateService;
 
@@ -52,6 +54,13 @@ namespace TranslateProgram
                 if (string.IsNullOrEmpty(generatedCodeNamespace))
                     throw new ArgumentNullException(nameof(generatedCodeNamespace));
 
+                string fileText = System.IO.File.ReadAllText(fileToRefactor);
+
+                RoslynReader roslynReader = new RoslynReader();
+                ReadOnlyCollection<string> literals = roslynReader.GetAllHebrewLiterals(fileText);
+                TranslateViaCopyPasteStarter.TranslateViaCopyPaste(literals);
+                //Dictionary<string, string> translateLiterals = copyPasteTranslator.TranslateAll(literals);
+
                 string refactored;
                 System.Text.Encoding encodingSourced;
                 using (IResourceManager englishResource = new ResourceManager(options.ResourcePath,
@@ -71,8 +80,6 @@ namespace TranslateProgram
 
                     RoslynManager roslynManager = new RoslynManager(translateResourceManager,
                         options.SolutionPath);
-
-                    string fileText = System.IO.File.ReadAllText(fileToRefactor);
 
                     encodingSourced = EncodingHelper.DetectTextEncoding(fileToRefactor, out _);
 

@@ -233,6 +233,8 @@
     <Compile Include="Replacer.cs" />
     <Compile Include="ReplacerInterpolatedString.cs" />
     <Compile Include="RoslynHelper.cs" />
+    <Compile Include="RoslynReader.cs" />
+    <Compile Include="StringLiteralReader.cs" />
     <Compile Include="StringLiteralRewriter.cs" />
     <Compile Include="RoslynManager.cs" />
     <Compile Include="SymbolContainer.cs" />

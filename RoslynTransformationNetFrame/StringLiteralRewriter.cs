@@ -22,7 +22,7 @@ namespace RoslynTransformationNetFrame
            IResourceManager translateResourceManager)
         {
             _semanticModel = semanticModel;
-            this._translateResourceManager = translateResourceManager;
+            _translateResourceManager = translateResourceManager;
         }
 
         /*public override SyntaxList<FieldDeclarationSyntax> VisitList<FieldDeclarationSyntax>(SyntaxList<FieldDeclarationSyntax> list)
