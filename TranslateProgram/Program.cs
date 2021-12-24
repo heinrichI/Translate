@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using TranslateService;
+using CommandLine;
 
 namespace TranslateProgram
 {
@@ -13,18 +14,24 @@ namespace TranslateProgram
     {
         static void Main(string[] args)
         {
-            //Class1.Open();
+            ProgramTranslationOptions cmdLineOptions = new ProgramTranslationOptions();
 
-            string resourcePath = ConfigurationManager.AppSettings.Get("ResourcePath");
+            Parser.Default.ParseArguments<ProgramTranslationOptions>(args).WithParsed(parsed => cmdLineOptions = parsed);
 
-            string fromLanguage = ConfigurationManager.AppSettings.Get("FromLanguage");
-            string toLanguage = ConfigurationManager.AppSettings.Get("ToLanguage");
+            ProgramTranslationOptions configOptions = ConfigurationManagerOptionsReader.GetArguments(ConfigurationManager.AppSettings);
 
-            string mode = ConfigurationManager.AppSettings.Get("Mode");
+            ProgramTranslationOptions options = new ProgramTranslationOptionsRequestWrapper(cmdLineOptions.fillNullsFrom(configOptions));
 
-            bool skip429 = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Skip429"));
+            string resourcePath = options.ResourcePath;
+
+            string fromLanguage = options.FromLanguage;
+            string toLanguage = options.ToLanguage;
+
+            string mode = options.Mode;
+
+            bool skip429 = options.SkipError429.Value;
             if (skip429)
-                Console.WriteLine("Skip 429 error enable!");
+                Console.WriteLine("Skip 429 error enabled!");
 
             TranslateMemory tm = new TranslateMemory(fromLanguage, toLanguage);
             ITranslatorService translatorService = new GoogleTranslator(fromLanguage, toLanguage);
@@ -33,9 +40,9 @@ namespace TranslateProgram
             if (mode == "Code")
             {
                 string hebrewResourcePath = Path.Combine(
-                    Path.GetDirectoryName(ConfigurationManager.AppSettings.Get("ResourcePath")),
-                    Path.GetFileNameWithoutExtension(ConfigurationManager.AppSettings.Get("ResourcePath")) + ".he-IL.resx");
-                string fileToRefactor = ConfigurationManager.AppSettings.Get("FileToRefactor");
+                    Path.GetDirectoryName(options.ResourcePath),
+                    Path.GetFileNameWithoutExtension(options.ResourcePath) + ".he-IL.resx");
+                string fileToRefactor = options.FileToRefactor;
 
                 string designerPath = Path.Combine(
                     Path.GetDirectoryName(resourcePath),
@@ -49,7 +56,7 @@ namespace TranslateProgram
                 if (string.IsNullOrEmpty(generatedCodeNamespace))
                     throw new ArgumentNullException(nameof(generatedCodeNamespace));
 
-                string solutionPath = ConfigurationManager.AppSettings.Get("SolutionPath");
+                string solutionPath = options.SolutionPath;
 
                 string refactored;
                 using (IResourceManager englishResource = new ResourceManager(resourcePath,
