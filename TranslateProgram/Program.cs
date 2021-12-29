@@ -13,8 +13,6 @@ namespace TranslateProgram
     {
         static void Main(string[] args)
         {
-            //Class1.Open();
-
             string resourcePath = ConfigurationManager.AppSettings.Get("ResourcePath");
 
             string fromLanguage = ConfigurationManager.AppSettings.Get("FromLanguage");
@@ -52,6 +50,7 @@ namespace TranslateProgram
                 string solutionPath = ConfigurationManager.AppSettings.Get("SolutionPath");
 
                 string refactored;
+                System.Text.Encoding encodingSourced;
                 using (IResourceManager englishResource = new ResourceManager(resourcePath,
                     designerPath,
                     "Strings",
@@ -71,12 +70,24 @@ namespace TranslateProgram
                         solutionPath);
 
                     string fileText = System.IO.File.ReadAllText(fileToRefactor);
+
+                    encodingSourced = EncodingHelper.DetectTextEncoding(fileToRefactor, out _);
+
                     refactored = roslynManager.Rewrite(fileText, generatedCodeNamespace);
                 }
 
                 if (!string.IsNullOrEmpty(refactored))
                 {
-                    File.WriteAllText(fileToRefactor, refactored);
+                    File.WriteAllText(fileToRefactor, refactored, encodingSourced);
+
+                    System.Text.Encoding encodingWriting = EncodingHelper.DetectTextEncoding(fileToRefactor, out _);
+                    if (encodingWriting != encodingSourced)
+                    {
+                        ConsoleColor currentForeground = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"File written in {encodingWriting}, but was in {encodingSourced}.");
+                        Console.ForegroundColor = currentForeground;
+                    }
                 }
             }
             else if (mode == "Form")

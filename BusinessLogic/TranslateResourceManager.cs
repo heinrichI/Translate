@@ -100,7 +100,11 @@ namespace BusinessLogic
                     if (!HebrewUtils.IsHebrewString(translate))
                     {
                         _englishResource.Add(hebString.Key, translate);
+
+                        ConsoleColor currentForeground = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"Synchronize: missing {hebString.Key} in English resource.");
+                        Console.ForegroundColor = currentForeground;
                     }
                 }
             }
