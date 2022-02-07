@@ -466,7 +466,7 @@ namespace RoslynTransformationNetFrame
             if (string.IsNullOrEmpty(postFix)
                  && !node.IsKind(SyntaxKind.InterpolatedStringExpression))
             {
-                postFix = RoslynHelper.GetSimpleMember(node.Parent);
+                postFix = RoslynHelper.GetSimpleMember(node.Parent, node);
                 if (!string.IsNullOrEmpty(postFix))
                     return postFix;
             }

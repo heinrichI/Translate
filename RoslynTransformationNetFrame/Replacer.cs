@@ -12,27 +12,44 @@ namespace RoslynTransformationNetFrame
         public Func<string, LiteralExpressionSyntax, QualifiedNameSyntax, BinaryExpressionSyntax> AddNodeAction { get; set; }
 
         string[] _literals = new string[] 
-        { 
-            "\n", 
+        {
+            "\r",
+            "\n",
             " "
         };
 
         bool _trimmed = false;
-        string _literal;
+        string _literal = string.Empty;
 
         public string GetClearedStringLiteral(string inputText)
         {
-            foreach (var literal in _literals)
+            string curTrimmed = inputText;
+
+            while(EndWith(curTrimmed, _literals, out string literal))
             {
-                if (inputText.EndsWith(literal))
-                {
-                    _trimmed = true;
-                    _literal = literal;
-                    return inputText.Substring(0, inputText.Length - literal.Length);
-                }
+                _trimmed = true;
+                _literal = literal + _literal;
+                curTrimmed = curTrimmed.Substring(0, curTrimmed.Length - literal.Length);
             }
+         
+            if (_trimmed)
+                return curTrimmed;
 
             return inputText;
+        }
+
+        private static bool EndWith(string inputText, string[] literals, out string literal)
+        {
+            foreach (var lit in literals)
+            {
+                if (inputText.EndsWith(lit))
+                {
+                    literal = lit;
+                    return true;
+                }
+            }
+            literal = string.Empty;
+            return false;
         }
 
         public BinaryExpressionSyntax AddNode(LiteralExpressionSyntax oldNode, QualifiedNameSyntax newNode)

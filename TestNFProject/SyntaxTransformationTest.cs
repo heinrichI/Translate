@@ -1119,6 +1119,52 @@ namespace HelloWorld
 
             Assert.IsTrue(_fakeResourceManager.ContainValue("שגיאה בשחזור מסד נתונים:"));
             Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה בשחזור מסד נתונים:\n"));
+        }     
+        
+        [Test]
+        public void TestStringWithCariegeReturnRN()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {
+            MessageUtils.ShowError(""שגיאה: \r\n"" + ex.Message);
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {
+            MessageUtils.ShowError(Strings.Program_MessageUtils + "" \r\n"" + ex.Message);
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+
+            Assert.IsTrue(_fakeResourceManager.ContainValue("שגיאה:"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה: \r"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה: "));
         }   
         
         [Test]

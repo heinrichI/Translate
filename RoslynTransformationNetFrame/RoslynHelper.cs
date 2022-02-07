@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace RoslynTransformationNetFrame
@@ -249,10 +250,11 @@ namespace RoslynTransformationNetFrame
         //    return null;
         //}
 
-        internal static string GetSimpleMember(SyntaxNode node, bool last = false)
+        internal static string GetSimpleMember(SyntaxNode parent, SyntaxNode target = null, bool last = false)
         {
-            var simpleMembers = node
+            var simpleMembers = parent
                      .DescendantNodes()
+                     .TakeWhile(f => target != null ? f != target : true)
                      .OfType<MemberAccessExpressionSyntax>()
                      .Where(m => m.Kind() == SyntaxKind.SimpleMemberAccessExpression);
             MemberAccessExpressionSyntax simpleMember = simpleMembers.FirstOrDefault();
