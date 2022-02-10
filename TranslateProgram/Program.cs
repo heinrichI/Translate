@@ -1,9 +1,10 @@
 ﻿using BusinessLogic;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Resource;
 using RoslynTransformationNetFrame;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using TranslateService;
 
@@ -13,31 +14,35 @@ namespace TranslateProgram
     {
         static void Main(string[] args)
         {
-            string resourcePath = ConfigurationManager.AppSettings.Get("ResourcePath");
+            IConfiguration conf = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddCommandLine(args)
+            .Build();
 
-            string fromLanguage = ConfigurationManager.AppSettings.Get("FromLanguage");
-            string toLanguage = ConfigurationManager.AppSettings.Get("ToLanguage");
+            var options = conf.Get<Option>();
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
 
-            string mode = ConfigurationManager.AppSettings.Get("Mode");
+            IServiceCollection services = new ServiceCollection();
+            services.AddSingleton<Option>(options);
 
-            bool skip429 = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Skip429"));
-            if (skip429)
+            if (options.Skip429Error)
                 Console.WriteLine("Skip 429 error enable!");
 
-            TranslateMemory tm = new TranslateMemory(fromLanguage, toLanguage);
-            ITranslatorService translatorService = new GoogleTranslator(fromLanguage, toLanguage);
+            TranslateMemory tm = new TranslateMemory(options.FromLanguage, options.ToLanguage);
+            ITranslatorService translatorService = new GoogleTranslator(options.FromLanguage, options.ToLanguage);
             TranslatorWithTM translatorWithTM = new TranslatorWithTM(tm, translatorService);
 
-            if (mode == "Code")
+            if (options.Mode == "Code")
             {
                 string hebrewResourcePath = Path.Combine(
-                    Path.GetDirectoryName(ConfigurationManager.AppSettings.Get("ResourcePath")),
-                    Path.GetFileNameWithoutExtension(ConfigurationManager.AppSettings.Get("ResourcePath")) + ".he-IL.resx");
-                string fileToRefactor = ConfigurationManager.AppSettings.Get("FileToRefactor");
+                    Path.GetDirectoryName(options.ResourcePath),
+                    Path.GetFileNameWithoutExtension(options.ResourcePath) + ".he-IL.resx");
+                string fileToRefactor = options.FileToRefactor;
 
                 string designerPath = Path.Combine(
-                    Path.GetDirectoryName(resourcePath),
-                    Path.GetFileNameWithoutExtension(resourcePath) + ".Designer.cs");
+                    Path.GetDirectoryName(options.ResourcePath),
+                    Path.GetFileNameWithoutExtension(options.ResourcePath) + ".Designer.cs");
 
 
                 string designerText = System.IO.File.ReadAllText(designerPath);
@@ -47,11 +52,9 @@ namespace TranslateProgram
                 if (string.IsNullOrEmpty(generatedCodeNamespace))
                     throw new ArgumentNullException(nameof(generatedCodeNamespace));
 
-                string solutionPath = ConfigurationManager.AppSettings.Get("SolutionPath");
-
                 string refactored;
                 System.Text.Encoding encodingSourced;
-                using (IResourceManager englishResource = new ResourceManager(resourcePath,
+                using (IResourceManager englishResource = new ResourceManager(options.ResourcePath,
                     designerPath,
                     "Strings",
                     generatedCodeNamespace,
@@ -62,12 +65,12 @@ namespace TranslateProgram
                     englishResource,
                     hebrewResource,
                     translatorWithTM,
-                    skip429);
+                    options.Skip429Error);
 
                     translateResourceManager.Synchronize();
 
                     RoslynManager roslynManager = new RoslynManager(translateResourceManager,
-                        solutionPath);
+                        options.SolutionPath);
 
                     string fileText = System.IO.File.ReadAllText(fileToRefactor);
 
@@ -90,17 +93,17 @@ namespace TranslateProgram
                     }
                 }
             }
-            else if (mode == "Form")
+            else if (options.Mode == "Form")
             {
                 string englishResourcePath = Path.Combine(
-                    Path.GetDirectoryName(resourcePath),
-                    Path.GetFileNameWithoutExtension(resourcePath) + ".en.resx");
+                    Path.GetDirectoryName(options.ResourcePath),
+                    Path.GetFileNameWithoutExtension(options.ResourcePath) + ".en.resx");
 
                 if (!File.Exists(englishResourcePath))
                     throw new FileNotFoundException("englishResourcePath");
                     //ResourceHelper.Create(englishResourcePath);
 
-                using (IResourceManager resource = new ResourceManager(resourcePath, onlyRead: true))
+                using (IResourceManager resource = new ResourceManager(options.ResourcePath, onlyRead: true))
                 using (IResourceManager englishResource = new ResourceManager(englishResourcePath))
                 {
                     foreach (KeyValuePair<string, string> item in resource)
@@ -129,7 +132,7 @@ namespace TranslateProgram
                 }
             }
             else
-                throw new ArgumentException("Unknown mode " + mode);
+                throw new ArgumentException("Unknown mode " + nameof(options.Mode));
 
             Console.WriteLine("Press any key");
             Console.ReadKey();
