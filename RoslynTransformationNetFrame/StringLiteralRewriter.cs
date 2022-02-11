@@ -276,9 +276,44 @@ namespace RoslynTransformationNetFrame
                     //var en = node.Parent.Parent.Parent.Parent.Parent.DescendantNodes().OfType<ExpressionStatementSyntax>();
 
                     Replacer replacer = new Replacer();
-                    replacer.AddNodeAction = (string literal,
+                    replacer.AddNodeAction = (
+                        string startLiteral,
+                        string endLiteral,
                         LiteralExpressionSyntax oldNode,
                         QualifiedNameSyntax newNode2) =>
+                    {
+                        ExpressionSyntax result = newNode2;
+
+                        if (!string.IsNullOrEmpty(startLiteral))
+                        {
+                            if (!result.HasLeadingTrivia)
+                                result = result.WithLeadingTrivia(SyntaxFactory.Whitespace(" "));
+
+                            var text = SyntaxFactory.LiteralExpression(
+                           SyntaxKind.StringLiteralExpression,
+                           SyntaxFactory.Literal(startLiteral))
+                           .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                           .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                            result = SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, text, result)
+                                 .WithLeadingTrivia(oldNode.GetLeadingTrivia());
+                        }
+
+                        if (!string.IsNullOrEmpty(endLiteral))
+                        {
+                            var text1 = SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(endLiteral))
+                                .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                                .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                            result = SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, result, text1)
+                                 .WithTrailingTrivia(oldNode.GetTrailingTrivia());
+                        }
+
+                        return result;
+                    };
+                    /*replacer.AddNodeToEndAction = (string literal,
+                        LiteralExpressionSyntax oldNode,
+                        ExpressionSyntax newNode2) =>
                     {
                         var text = SyntaxFactory.LiteralExpression(
                             SyntaxKind.StringLiteralExpression, 
@@ -288,6 +323,18 @@ namespace RoslynTransformationNetFrame
                         return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, newNode2, text)
                              .WithTrailingTrivia(oldNode.GetTrailingTrivia());
                     };
+                    replacer.AddNodeToStartAction = (string literal,
+                        LiteralExpressionSyntax oldNode,
+                        ExpressionSyntax newNode2) =>
+                    {
+                        var text = SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression, 
+                            SyntaxFactory.Literal(literal))
+                            .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                            .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+                        return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, text, newNode2 )
+                             .WithLeadingTrivia(oldNode.GetLeadingTrivia());
+                    };*/
 
                     stringLiteral = replacer.GetClearedStringLiteral(stringLiteral);
 

@@ -1165,6 +1165,51 @@ namespace HelloWorld
             Assert.IsTrue(_fakeResourceManager.ContainValue("שגיאה:"));
             Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה: \r"));
             Assert.IsFalse(_fakeResourceManager.ContainValue("שגיאה: "));
+        }        
+        
+        [Test]
+        public void TestReplaceLessMort()
+        {
+            const string sourceCode =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {
+            DataEditUtils.AddEmptyRowToTable(tbBatch, new string[] { ""BTC_ID"", ""BTC_Num_Str"" }, new object[] { -1, ""<חדש>"" });
+        }
+    }
+}";
+
+            const string expected =
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        private static void LoadPackageDataByFiles(EntityLimitInfo info)
+        {
+            DataEditUtils.AddEmptyRowToTable(tbBatch, new string[] { ""BTC_ID"", ""BTC_Num_Str"" }, new object[] { -1, ""<"" + Strings.Program_tbBatch + "">"" });
+        }
+    }
+}";
+            _fakeResourceManager.Clear();
+
+            string result = _testClass.Rewrite(sourceCode);
+            Assert.AreEqual(expected, result);
+
+            Assert.IsTrue(_fakeResourceManager.ContainValue("חדש"));
+            Assert.IsFalse(_fakeResourceManager.ContainValue("<חדש>"));
         }   
         
         [Test]
